@@ -1,0 +1,12 @@
+name = "hapkek-leaderboard"
+main = "worker/index.js"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hapkek-leaderboard"
+# Replace with the real ID shown in Cloudflare > D1 > hapkek-leaderboard before running `wrangler deploy`.
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Set this to the exact HTTPS origin where staff-app/ is hosted, e.g. https://staff.kelb... .
+# Configure the same value as Worker environment variable STAFF_APP_ORIGIN.

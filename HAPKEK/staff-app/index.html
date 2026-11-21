@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#751d17"><title>HAPKEK Staff — Voucher Desk</title><link rel="stylesheet" href="staff.css"></head>
+<body><main class="shell">
+<header><div class="brand">HAPKEK <span>STAFF</span></div><p>Voucher verification desk</p></header>
+<section id="login" class="card">
+<h1>Staff sign in</h1><form id="loginForm"><label>Choose your nickname<select id="nickname" required><option value="">Loading users…</option></select></label><label>4-digit PIN<input id="pin" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{4}" maxlength="4" required></label><button>Log in</button><p id="loginError" class="error" role="alert"></p></form>
+</section>
+<section id="pinSetup" class="card" hidden><h1>Choose your new PIN</h1><p class="muted">Your temporary PIN can only be used once. Choose a new 4-digit PIN.</p><form id="pinForm"><label>New 4-digit PIN<input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><label>Confirm new PIN<input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button>Save PIN</button><p id="pinError" class="error" role="alert"></p></form></section>
+<section id="desk" class="card" hidden>
+<div class="toolbar"><div><h1>Voucher scanner</h1><p id="staffName" class="muted"></p></div><button id="logout" class="secondary">Sign out</button></div>
+<div class="tabs"><button id="scanTab" class="active">Scan QR</button><button id="manualTab" class="secondary">Enter code</button></div>
+<div id="scanPanel"><div id="reader"></div><p class="muted">Allow camera access. Center the HAPKEK voucher QR code in the frame.</p><button id="startScan">Start camera</button><button id="stopScan" class="secondary" hidden>Stop camera</button></div>
+<div id="manualPanel" hidden><label>Voucher code<input id="manualCode" placeholder="HAP-XXXXXXXXXX" autocapitalize="characters"></label><button id="checkCode">Validate and redeem</button></div>
+<div id="result" class="result" aria-live="polite" hidden></div>
+</section>
+<footer>Authorized staff only · HAPKEK Voucher System</footer>
+</main><script>
+/* Set to the deployed HAPKEK Worker origin, e.g. https://api.example.com */
+window.HAPKEK_STAFF_API = window.HAPKEK_STAFF_API || "";
+</script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="staff.js"></script></body></html>

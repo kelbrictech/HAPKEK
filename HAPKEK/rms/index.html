@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#321912"><title>HAPKEK RMS — Operations</title><link rel="stylesheet" href="rms.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="./">HAPKEK <span>RMS</span></a>
+    <div class="side-label">OPERATIONS</div>
+    <a class="nav active" href="#overview">Overview</a>
+    <a class="nav" href="#vouchers">Voucher ledger</a>
+    <a class="nav" href="#campaign">Daily campaign stock</a>
+    <a class="nav" href="#audit">Audit history</a>
+    <a class="nav" href="#users">Staff access</a>
+    <div class="side-label later-label">PLANNED MODULES</div>
+    <span class="nav disabled">Point of sale <small>Later</small></span>
+    <span class="nav disabled">Products & inventory <small>Later</small></span>
+    <span class="nav disabled">Customers & loyalty <small>Later</small></span>
+    <span class="nav disabled">Staff & shifts <small>Later</small></span>
+    <div class="sidebar-bottom"><a href="../staff-app/" class="scanner-link">Open voucher scanner ↗</a><p>HAPKEK Retail Management System</p></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Staff</strong><small id="userRole">Checking access</small></div><button id="logout" class="outline">Sign out</button></div></header>
+    <section id="loginPanel" class="panel login-panel" hidden><h2>RMS sign in</h2><p class="muted">Use your authorized HAPKEK staff account.</p><form id="loginForm"><label>Choose your nickname<select id="nickname" required><option value="">Loading users…</option></select></label><label>4-digit PIN<input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Log in</button><p id="loginError" class="error" role="alert"></p></form></section>
+    <section id="accessPanel" class="panel" hidden><h2>RMS access required</h2><p>Your account can use the voucher scanner but does not have permission to view management reporting.</p><a href="../staff-app/">Open voucher scanner</a></section>
+    <div id="appContent" hidden>
+      <section class="metric-grid" id="overview">
+        <article class="metric"><span>Game plays today</span><strong id="plays">—</strong><small>Completed leaderboard submissions</small></article>
+        <article class="metric"><span>Vouchers issued</span><strong id="issued">—</strong><small>Today's Philippine date</small></article>
+        <article class="metric"><span>Vouchers redeemed</span><strong id="redeemed">—</strong><small>Confirmed store redemptions</small></article>
+        <article class="metric"><span>Still outstanding</span><strong id="outstanding">—</strong><small>Issued today, not yet redeemed</small></article>
+      </section>
+      <section class="panel" id="campaign"><div class="section-head"><div><p class="eyebrow">PROMOTION OPERATIONS</p><h2>Daily prize inventory</h2></div><span class="pill">Asia / Manila</span></div><div class="table-wrap"><table><thead><tr><th>Prize</th><th>Daily allocation</th><th>Issued</th><th>Remaining</th><th>State</th></tr></thead><tbody id="prizeRows"><tr><td colspan="5">Loading campaign inventory…</td></tr></tbody></table></div></section>
+      <section class="panel" id="vouchers"><div class="section-head"><div><p class="eyebrow">ISSUANCE & REDEMPTION</p><h2>Voucher ledger</h2></div><div class="filters"><select id="voucherStatus"><option value="all">All vouchers</option><option value="issued">Unredeemed</option><option value="redeemed">Redeemed</option></select><input id="voucherDate" type="date"><button id="refreshVouchers" class="outline">Refresh</button></div></div><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Prize</th><th>Player ID</th><th>Issued</th><th>Status</th><th>Redeemed by</th></tr></thead><tbody id="voucherRows"><tr><td colspan="6">Loading voucher records…</td></tr></tbody></table></div></section>
+      <section class="panel" id="users" hidden><div class="section-head"><div><p class="eyebrow">ACCESS CONTROL</p><h2>Staff access</h2></div></div><form id="userAccessForm" class="filters"><label>Existing nickname<select id="staffNickname" required></select></label><label>Temporary 4-digit PIN<input id="temporaryPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Issue / reset access</button></form><p id="userAccessMessage" class="muted" role="status"></p><div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div></section><section class="panel" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
+      <footer>HAPKEK RMS · Operational data from the shared HAPKEK server</footer>
+    </div>
+  </main>
+</div>
+<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="rms.js"></script>
+</body></html>

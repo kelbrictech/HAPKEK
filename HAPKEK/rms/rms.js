@@ -1,0 +1,30 @@
+(() => {
+  const API=(window.HAPKEK_RMS_API||"").replace(/\/$/,"");
+  const $=id=>document.getElementById(id);
+  const show=(id,on)=>$(id).hidden=!on;
+  let currentStaff=null;
+  async function api(path,options={}){
+    const r=await fetch(API+path,{...options,credentials:"include",cache:"no-store",headers:{"Content-Type":"application/json",...(options.headers||{})}});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok){const e=new Error(data.error||"Request failed");e.status=r.status;throw e;}return data;
+  }
+  function cell(text){const td=document.createElement("td");td.textContent=text==null?"—":String(text);return td;}
+  function row(parent,values){const tr=document.createElement("tr");values.forEach(v=>tr.append(v instanceof Node?v:cell(v)));parent.append(tr);}
+  function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
+  async function loadNicknames(){try{const d=await api("/api/staff/users");const select=$("nickname");select.replaceChildren(new Option("Select your nickname",""));d.users.forEach(u=>select.add(new Option(u.nickname,u.nickname)));}catch{$("nickname").replaceChildren(new Option("Could not load users",""));}}
+  function routeSignedIn(staff){currentStaff=staff;$("userName").textContent=staff.displayName;$("userRole").textContent=staff.role||"staff";show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));if(staff.mustChangePin){show("appContent",false);show("accessPanel",false);return;}show("accessPanel",false);if(!["owner","admin","manager"].includes(staff.role)){show("accessPanel",true);show("appContent",false);return;}show("appContent",true);show("users",staff.role==="admin");refresh();}
+  async function loadUsers(){const d=await api("/api/rms/users");const body=$("userRows");body.replaceChildren();const select=$("staffNickname");select.replaceChildren(new Option("Select nickname",""));d.users.filter(u=>u.role!=="admin").forEach(u=>{select.add(new Option(u.nickname,u.nickname));row(body,[u.nickname,u.role,u.active?"Active":"Pending",u.mustChangePin?"Temporary PIN required":"Set"]);});}
+  async function loadOverview(){const d=await api("/api/rms/overview");$("dateLine").textContent=`Business date: ${d.date} · Philippine time`;$("plays").textContent=d.metrics.playsToday.toLocaleString();$("issued").textContent=d.metrics.vouchersIssuedToday.toLocaleString();$("redeemed").textContent=d.metrics.vouchersRedeemedToday.toLocaleString();$("outstanding").textContent=d.metrics.outstandingToday.toLocaleString();
+    const body=$("prizeRows");body.replaceChildren();d.prizes.forEach(p=>{const remaining=Math.max(0,Number(p.daily_limit)-Number(p.issued_today));const state=!p.active?"Inactive":remaining===0?"Sold out":"Available";row(body,[p.label,p.daily_limit, p.issued_today,remaining,state]);});
+  }
+  async function loadVouchers(){const params=new URLSearchParams({limit:"100",status:$("voucherStatus").value});if($("voucherDate").value)params.set("date",$("voucherDate").value);const d=await api("/api/rms/vouchers?"+params);const body=$("voucherRows");body.replaceChildren();if(!d.vouchers.length){row(body,["No matching vouchers","","","","",""]);return;}d.vouchers.forEach(v=>{const status=document.createElement("span");status.className="status"+(v.redeemed_at?" used":"");status.textContent=v.redeemed_at?"REDEEMED":"ISSUED";row(body,[v.voucher_code,v.label,v.player_id,fmt(v.created_at),status,v.redeemed_by||"—"]);});}
+  async function loadAudit(){const d=await api("/api/rms/audit");const body=$("auditRows");body.replaceChildren();if(!d.events.length){row(body,["No audit events yet","","","",""]);return;}d.events.forEach(a=>{let details="";try{details=JSON.stringify(JSON.parse(a.details_json));}catch{}row(body,[fmt(a.created_at),a.display_name||a.username||"System",a.action,a.entity_type+" "+(a.entity_id||""),details]);});}
+  async function refresh(){try{await Promise.all([loadOverview(),loadVouchers(),loadAudit(),...(currentStaff?.role==="admin"?[loadUsers()]:[])]);}catch(e){if(e.status===401){show("appContent",false);show("loginPanel",true);}else console.error(e);}}
+  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{show("loginPanel",true);show("pinSetupPanel",false);show("appContent",false);show("accessPanel",false);}}
+  $("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="";try{const d=await api("/api/staff/login",{method:"POST",body:JSON.stringify({nickname:$("nickname").value,pin:$("pin").value})});$("pin").value="";routeSignedIn(d.staff);}catch(err){$("loginError").textContent=err.message;}});
+  $("pinForm").addEventListener("submit",async e=>{e.preventDefault();$("pinError").textContent="";if($("newPin").value!==$("confirmPin").value){$("pinError").textContent="PINs do not match";return;}try{await api("/api/staff/change-pin",{method:"POST",body:JSON.stringify({pin:$("newPin").value})});$("newPin").value=$("confirmPin").value="";await session();}catch(err){$("pinError").textContent=err.message;}});
+  $("userAccessForm").addEventListener("submit",async e=>{e.preventDefault();$("userAccessMessage").textContent="";try{const d=await api("/api/rms/users/temporary-pin",{method:"POST",body:JSON.stringify({nickname:$("staffNickname").value,temporaryPin:$("temporaryPin").value})});$("temporaryPin").value="";$("userAccessMessage").textContent=`Temporary access issued for ${d.nickname}. Give the PIN to the staff member securely.`;await loadUsers();}catch(err){$("userAccessMessage").textContent=err.message;}});
+  $("logout").addEventListener("click",async()=>{try{await api("/api/staff/logout",{method:"POST"});}finally{currentStaff=null;show("appContent",false);show("accessPanel",false);show("loginPanel",true);}});
+  $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
+  loadNicknames();session();
+})();
