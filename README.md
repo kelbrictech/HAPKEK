@@ -107,7 +107,6 @@ Ana's RMS dashboard includes an **Ana-only Staff access** action for Anmer. Only
 
 PINs are PBKDF2-HMAC-SHA256 hashes with 210,000 iterations and random salts. Five failed attempts trigger a 15-minute lockout. Sessions are HttpOnly, Secure, SameSite=Strict cookies with a 12-hour lifetime. PIN changes invalidate other sessions. The server enforces roles and the forced PIN-change state; client-side visibility is not an authorization boundary.
 
-**Webmaster recovery:** set a strong `WEBMASTER_RECOVERY_TOKEN` Worker secret. The protected backend-only `POST /api/webmaster/recovery/temporary-pin` endpoint accepts a 4-digit `temporaryPin` with `Authorization: Bearer <secret>`, resets Ana's account, invalidates her sessions and forces a PIN change at next login. Never place this token in browser code or commit it to Git.
 
 The scanner supports camera QR scanning and manual voucher-code entry. Camera access requires HTTPS and user permission. Set `STAFF_APP_ORIGIN` to the exact HTTPS origin serving the staff and RMS interfaces (or serve both from the same origin); configure the app API constants if the Worker is hosted elsewhere.
 
@@ -120,7 +119,7 @@ The first RMS release is an operations console for the existing shared game/vouc
 - `rms/`: owner/administrator/manager dashboard for today's game submissions, voucher issuance/redemption counts, daily prize allocation, voucher ledger, and recent audit activity.
 - `staff-app/`: staff voucher scanner and redemption interface.
 - Shared Worker API and D1 records; RMS does not maintain a separate voucher database.
-- Staff roles: `admin` and `staff` are the active v1 roles; the schema retains `owner` and `manager` for later expansion. Management reporting is server-authorized; staff retain scanner access only.
+- Staff roles are limited to `admin` and `staff`. Management reporting is server-authorized; staff retain scanner access only.
 - Migration `database/migrations/0004_rms_foundation.sql`: staff role column and RMS audit log.
 - Migration `database/migrations/0005_nickname_pin_access.sql`: Ana/Anmer seed accounts disabled until secure PIN provisioning, forced PIN change, failed-attempt lockout fields.
 
@@ -138,7 +137,7 @@ Provision the initial administrator (run on a trusted machine):
 
 `node scripts/create_staff_user.mjs Ana Ana admin`
 
-The script generates a random 4-digit one-time PIN and prints the SQL that activates the seeded Ana identity. Execute the SQL against the intended D1 database, deliver the PIN to Ana securely, and require her to change it immediately after login. The script can also create or reset staff identities with the `owner`, `admin`, `manager`, or `staff` role. Never commit the generated SQL or disclose the temporary PIN publicly.
+The script generates a random 4-digit one-time PIN and prints the SQL that activates the seeded Ana identity. Execute the SQL against the intended D1 database, deliver the PIN to Ana securely, and require her to change it immediately after login. The script can create or reset staff identities with the `admin` or `staff` role only. Never commit the generated SQL or disclose the temporary PIN publicly.
 
 Host `rms/` and `staff-app/` over HTTPS. Configure `window.HAPKEK_RMS_API` in `rms/index.html` and `window.HAPKEK_STAFF_API` in `staff-app/index.html` to the Worker origin when hosted on a different origin. Set `STAFF_APP_ORIGIN` to the exact origin used by both apps (if they share an origin). The Worker must be deployed with the D1 binding pointing at the same database used by the game.
 
@@ -181,3 +180,8 @@ The RMS Point of Sale is available to authenticated staff after a completed PIN 
 - No inventory decrement, voucher discount, void, or refund flow is included.
 
 This is a source-branch implementation only. It has not been deployed or connected to production D1.
+
+
+### Admin and staff only
+
+The RMS has exactly two supported roles: `admin` and `staff`. Webmaster bootstrap, recovery, account provisioning, UI controls, and API routes have been removed. Migration `0007_admin_staff_only.sql` retires any legacy Webmaster account while preserving audit history and operational records, and maps legacy `owner`/`manager` roles to `admin`.
