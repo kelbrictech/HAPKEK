@@ -1,6 +1,6 @@
 // Securely provision the one-time Webmaster login in the configured Cloudflare D1 database.
 // PowerShell:
-//   $env:HAPKEK_BOOTSTRAP_PIN = "7425"
+//   $env:HAPKEK_BOOTSTRAP_PIN = "<one-time PIN>"
 //   node scripts/provision_webmaster.mjs
 //   Remove-Item Env:HAPKEK_BOOTSTRAP_PIN
 //
