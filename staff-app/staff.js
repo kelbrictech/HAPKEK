@@ -226,7 +226,7 @@
       safeResult("bad",status==="already_redeemed"?"Already redeemed":error.status===404?"Voucher not found":"Could not redeem",error.message);
     }finally{
       scanBusy=false;
-      if(scanner)setTimeout(()=>{if(scanner&&scanner.isScanning)scanner.resume();},1800);
+      if(scanner)setTimeout(()=>{if(scanner)scanner.resume();},1800);
     }
   }
   async function startScanner(){
@@ -236,7 +236,7 @@
       scanner=new Html5Qrcode("reader");
       await scanner.start({facingMode:"environment"},{fps:10,qrbox:{width:240,height:240}},async text=>{
         if(scanBusy)return;
-        try{if(scanner?.isScanning)await scanner.pause(true);}catch{}
+        try{if(scanner)await scanner.pause(true);}catch{}
         await redeem(text);
       });
       show("startScan",false);show("stopScan",true);
