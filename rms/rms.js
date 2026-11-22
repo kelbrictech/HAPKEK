@@ -12,7 +12,7 @@
   function row(parent,values){const tr=document.createElement("tr");values.forEach(v=>tr.append(v instanceof Node?v:cell(v)));parent.append(tr);}
   function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
   async function loadNicknames(){try{const d=await api("/api/staff/users");const select=$("nickname");select.replaceChildren(new Option("Select your nickname",""));d.users.forEach(u=>select.add(new Option(u.nickname,u.nickname)));}catch{$("nickname").replaceChildren(new Option("Could not load users",""));}}
-  function routeSignedIn(staff){currentStaff=staff;$("userName").textContent=staff.displayName;$("userRole").textContent=staff.role||"staff";show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);if(staff.mustChangePin){show("appContent",false);return;}show("appContent",true);const canManage=["owner","admin","manager"].includes(staff.role);document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});show("users",staff.role==="admin"&&String(staff.username||"").toLowerCase()==="ana");show("posManagement",canManage);refresh();}
+  function routeSignedIn(staff){currentStaff=staff;$("userName").textContent=staff.displayName;$("userRole").textContent=staff.role||"staff";show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);if(staff.mustChangePin){show("appContent",false);return;}show("appContent",true);const canManage=["owner","admin","manager"].includes(staff.role);const webmaster=String(staff.username||"").toLowerCase()==="webmaster"&&String(staff.role||"").toLowerCase()==="owner";document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});document.querySelectorAll(".webmaster-only").forEach(el=>{el.hidden=!webmaster;});show("users",staff.role==="admin"&&String(staff.username||"").toLowerCase()==="ana");show("posManagement",canManage);refresh();}
   async function loadUsers(){const d=await api("/api/rms/users");const body=$("userRows");body.replaceChildren();d.users.forEach(u=>row(body,[u.nickname,u.role,u.active?"Active":"Pending",u.mustChangePin?"Temporary PIN required":"Set"]));}
   async function loadOverview(){const d=await api("/api/rms/overview");$("dateLine").textContent=`Business date: ${d.date} · Philippine time`;$("plays").textContent=d.metrics.playsToday.toLocaleString();$("issued").textContent=d.metrics.vouchersIssuedToday.toLocaleString();$("redeemed").textContent=d.metrics.vouchersRedeemedToday.toLocaleString();$("outstanding").textContent=d.metrics.outstandingToday.toLocaleString();
     const body=$("prizeRows");body.replaceChildren();d.prizes.forEach(p=>{const remaining=Math.max(0,Number(p.daily_limit)-Number(p.issued_today));const state=!p.active?"Inactive":remaining===0?"Sold out":"Available";row(body,[p.label,p.daily_limit, p.issued_today,remaining,state]);});
@@ -138,6 +138,33 @@
   $("copyIssuedPin").addEventListener("click",async()=>{
     const pin=$("issuedPin").textContent;
     try{await navigator.clipboard.writeText(pin);$("copyIssuedPin").textContent="Copied";}catch{$("copyIssuedPin").textContent="Select PIN to copy";}
+  });
+  $("exportCurrentState").addEventListener("click",async()=>{
+    $("exportStateMessage").textContent="Preparing current-state export…";
+    $("exportCurrentState").disabled=true;
+    try{
+      const data=await api("/api/rms/webmaster/export");
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob),link=document.createElement("a");
+      link.href=url;link.download="HAPKEK_RMS_state_"+new Date().toISOString().slice(0,10)+".json";
+      document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+      $("exportStateMessage").textContent="Export created. Keep the downloaded file in a secure backup location.";
+    }catch(error){$("exportStateMessage").textContent=error.message||"Export failed.";}
+    finally{$("exportCurrentState").disabled=false;}
+  });
+  $("masterResetForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const phrase=$("masterResetConfirmation").value.trim();
+    if(phrase!=="RESET STAFF ACCESS"){$("masterResetMessage").textContent="The confirmation phrase does not match.";return;}
+    const button=$("masterResetButton");button.disabled=true;
+    $("masterResetMessage").textContent="Resetting staff access…";
+    try{
+      const result=await api("/api/rms/webmaster/master-reset",{method:"POST",body:JSON.stringify({confirmation:phrase})});
+      $("masterResetMessage").textContent=result.message+" Disabled accounts: "+result.disabledAccounts+". Sessions revoked: "+result.revokedSessions+".";
+      $("masterResetConfirmation").value="";
+      await refresh();
+    }catch(error){$("masterResetMessage").textContent=error.message||"Master reset failed.";}
+    finally{button.disabled=false;}
   });
   $("logout").addEventListener("click",async()=>{try{await api("/api/staff/logout",{method:"POST"});}finally{clearIssuedTemporaryPin();currentStaff=null;show("appContent",false);show("accessPanel",false);show("loginPanel",true);}});
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
