@@ -4,6 +4,10 @@
 import { webcrypto } from 'node:crypto';
 
 const [username, displayName, role = "staff"] = process.argv.slice(2);
+if (String(username || "").toLowerCase() === "webmaster") {
+  console.error("The Webmaster account name is retired.");
+  process.exit(1);
+}
 if (!username || !displayName || username.length > 20 || displayName.length > 40 ||
     !["admin", "staff"].includes(role)) {
   console.error("Usage: node scripts/create_staff_user.mjs <nickname> <display-name> [admin|staff]");
