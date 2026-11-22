@@ -35,3 +35,36 @@
 .master-reset-btn{border:0;border-radius:9px;background:#8c241e;color:#fff;padding:12px 15px;font-weight:800;cursor:pointer}
 .master-reset-btn:disabled{opacity:.55;cursor:wait}
 @media(max-width:700px){.webmaster-actions{grid-template-columns:1fr}}
+
+/* One RMS sign-in landing; the role-specific workspace appears only after authentication. */
+.layout.login-mode{display:block;min-height:100vh;background:#f5efe6}
+.layout.login-mode .sidebar,.layout.login-mode .main>.topbar{display:none}
+.layout.login-mode .main{max-width:480px;margin:0 auto;padding:9vh 20px}
+.layout.login-mode .login-panel{margin:0 auto;display:block}
+.layout.login-mode .login-panel h2{font-size:28px}
+.layout.login-mode .login-panel label{display:block;font-size:12px;font-weight:700;margin:14px 0}
+.layout.login-mode .login-panel input,.layout.login-mode .login-panel select{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #d9cbbd;border-radius:8px;background:#fff}
+.layout.login-mode #appContent{display:none}
+.order-details-fields{padding:18px;margin-top:14px}
+.order-details-fields label,.scanner-card label{display:block;font-size:12px;font-weight:750;margin:13px 0 6px}
+.order-details-fields input,.order-details-fields textarea,.scanner-card input{display:block;width:100%;padding:11px 12px;border:1px solid #ddcfc0;border-radius:9px;background:#fffdf9;color:#34231c;font:inherit;font-size:13px}
+.order-details-fields textarea{resize:vertical;min-height:76px}
+#referenceField{margin:14px 0}
+#referenceField label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+#referenceField input{width:100%;padding:11px 12px;border:1px solid #ddcfc0;border-radius:9px;background:#fffdf9;font:inherit}
+.scanner-workspace{margin:20px 0;padding:20px}
+.scanner-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);gap:15px;align-items:start}
+.scanner-card{min-width:0;padding:16px;border:1px solid #eadfd2;border-radius:14px;background:#fffaf4}
+.scanner-card h3{margin:0 0 12px;color:#40251a}
+#reader{width:100%;min-height:220px;overflow:hidden;border-radius:12px;background:#211814}
+#reader video{width:100%;max-height:400px;object-fit:cover;border-radius:12px}
+.scanner-actions{display:flex;gap:9px;margin:12px 0}
+.scanner-actions button{width:auto;flex:1}
+.scanner-card>.primary{margin-top:12px}
+.scan-result{margin-top:14px;padding:14px;border:1px solid #e5d8cb;border-radius:11px;background:#fff}
+.scan-result.good{background:#edf7ef;border-color:#b8d9c0}
+.scan-result.bad{background:#fff1ef;border-color:#ebc4bd}
+.scan-result h3{margin:0 0 5px;font-size:15px}
+.scan-result p{margin:0;font-size:12px;line-height:1.45}
+.receipt-note{font-size:11px;color:#6e5b4c;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
+@media(max-width:720px){.layout.login-mode .main{padding:8vh 14px}.scanner-grid{grid-template-columns:1fr}.scanner-workspace{padding:15px}}
