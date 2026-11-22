@@ -355,7 +355,7 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
 .flow-hint{font-size:11px;color:#8a776a;margin:0 auto 0 0}
 #receiptPanel{overflow:auto}
 #scan.workspace-view.is-active{display:block!important}
-#overview.workspace-view.is-active,#campaign.workspace-view.is-active,#vouchers.workspace-view.is-active,#audit.workspace-view.is-active{overflow:auto}\n#overview.workspace-view.is-active{display:grid!important}\n#posManagement{grid-column:1/-1}\n#checkoutPanel[hidden]{display:none!important}\n#pos.has-receipt .pos-layout{display:none!important}\n#pos.has-receipt #checkoutPanel{display:none!important}\n#pos.has-receipt #receiptPanel{display:block!important;max-width:760px;width:100%;margin:0 auto;overflow:auto}
+#overview.workspace-view.is-active,#campaign.workspace-view.is-active,#vouchers.workspace-view.is-active,#audit.workspace-view.is-active{overflow:auto}\n#overview.workspace-view.is-active{display:grid!important}\n#posManagement{grid-column:1/-1}\n#checkoutPanel[hidden]{display:none!important}\n#pos.has-receipt .pos-layout{display:none!important}\n#pos.has-receipt .rms-flow,#pos.has-receipt .flow-actions{display:none!important}\n#pos.has-receipt #checkoutPanel{display:none!important}\n#pos.has-receipt #receiptPanel{display:block!important;max-width:760px;width:100%;margin:0 auto;overflow:auto}
 #overview{align-content:start}
 #overview.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
 #campaign,#vouchers,#audit{height:100%;margin:0}
