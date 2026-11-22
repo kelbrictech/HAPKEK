@@ -127,6 +127,7 @@
     posCartRender();
   }
   function posReceipt(sale){
+    $("pos").dataset.posStage="3";
     $("pos").classList.add("has-receipt");
     $("checkoutPanel").hidden=true;$("receiptPanel").hidden=false;const root=$("receiptDetails");root.replaceChildren();
     const title=document.createElement("h4");title.textContent="HAPKEK";root.append(title);
