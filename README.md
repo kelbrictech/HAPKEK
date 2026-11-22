@@ -190,3 +190,8 @@ The RMS has exactly two supported roles: `admin` and `staff`. Webmaster bootstra
 ## Pages deployment configuration — 22 November 2026
 
 Cloudflare Pages project `hapkek-rms` now targets the repository `main` branch. Its build command no longer copies the retired Webmaster setup page. Backend deployment and production D1 migrations remain separate release steps and must be verified before staff login or POS is declared live.
+
+
+### RMS taskflow preview
+
+Preview deployments are enabled for feature branches. The RMS taskflow and secure staff-authentication changes remain staged for review; production deployment and live D1 account provisioning require separate approval and verification.
