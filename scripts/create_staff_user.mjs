@@ -29,7 +29,9 @@ VALUES(${esc(username)},${esc(displayName)},'${hex(salt)}','${hex(bits)}',1,${es
 ON CONFLICT(username) DO UPDATE SET
 display_name=excluded.display_name,password_salt=excluded.password_salt,
 password_hash=excluded.password_hash,active=1,role=excluded.role,
-must_change_pin=1,failed_pin_attempts=0,locked_until=0;`;
+must_change_pin=1,failed_pin_attempts=0,locked_until=0;
+DELETE FROM hapkek_staff_sessions
+WHERE staff_id=(SELECT id FROM hapkek_staff_users WHERE username=${esc(username)} COLLATE NOCASE);`;
 
 console.log("ONE-TIME TEMPORARY PIN (share securely): " + pin);
 console.log("\nRun this SQL against the target HAPKEK D1 database:\n");
