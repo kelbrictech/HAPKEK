@@ -2,17 +2,34 @@
   const API=(window.HAPKEK_RMS_API||"").replace(/\/$/,"");
   const $=id=>document.getElementById(id);
   const show=(id,on)=>$(id).hidden=!on;
-  let currentStaff=null;
+  let currentStaff=null,scanner=null,scanBusy=false;
   async function api(path,options={}){
     const r=await fetch(API+path,{...options,credentials:"include",cache:"no-store",headers:{"Content-Type":"application/json",...(options.headers||{})}});
     const data=await r.json().catch(()=>({}));
-    if(!r.ok){const e=new Error(data.error||"Request failed");e.status=r.status;throw e;}return data;
+    if(!r.ok){const e=new Error(data.error||"Request failed");e.status=r.status;e.data=data;throw e;}return data;
   }
   function cell(text){const td=document.createElement("td");td.textContent=text==null?"—":String(text);return td;}
   function row(parent,values){const tr=document.createElement("tr");values.forEach(v=>tr.append(v instanceof Node?v:cell(v)));parent.append(tr);}
   function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
-  async function loadNicknames(){try{const d=await api("/api/staff/users");const select=$("nickname");select.replaceChildren(new Option("Select your nickname",""));d.users.forEach(u=>select.add(new Option(u.nickname,u.nickname)));}catch{$("nickname").replaceChildren(new Option("Could not load users",""));}}
-  function routeSignedIn(staff){currentStaff=staff;$("userName").textContent=staff.displayName;$("userRole").textContent=staff.role||"staff";show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);if(staff.mustChangePin){show("appContent",false);return;}show("appContent",true);const canManage=["owner","admin","manager"].includes(staff.role);const webmaster=String(staff.username||"").toLowerCase()==="webmaster"&&String(staff.role||"").toLowerCase()==="owner";document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});document.querySelectorAll(".webmaster-only").forEach(el=>{el.hidden=!webmaster;});show("users",staff.role==="admin"&&String(staff.username||"").toLowerCase()==="ana");show("posManagement",canManage);refresh();}
+  async function loadNicknames(){try{const d=await api("/api/staff/users");const select=$("nickname");select.replaceChildren(new Option("Select your nickname",""));d.users.filter(u=>u.active).forEach(u=>select.add(new Option(u.nickname,u.nickname)));if(select.options.length===1)select.replaceChildren(new Option("No active staff accounts",""));}catch{$("nickname").replaceChildren(new Option("Could not load users",""));}}
+  function routeSignedIn(staff){
+    currentStaff=staff;
+    $("userName").textContent=staff.displayName||staff.nickname||"Staff";
+    $("userRole").textContent=staff.role||"staff";
+    show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);
+    if(staff.mustChangePin){show("appContent",false);return;}
+    show("appContent",true);
+    document.querySelector(".layout").classList.remove("login-mode");
+    const role=String(staff.role||"staff").toLowerCase();
+    const canManage=["owner","admin","manager"].includes(role);
+    const isWebmaster=String(staff.username||"").toLowerCase()==="webmaster"&&role==="owner";
+    document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});
+    document.querySelectorAll(".webmaster-only").forEach(el=>{el.hidden=!isWebmaster;});
+    show("users",role==="admin"&&String(staff.username||"").toLowerCase()==="ana");
+    show("posManagement",canManage);
+    $("dateLine").textContent="Point of sale and voucher tools · Philippine time";
+    refresh();
+  }
   async function loadUsers(){const d=await api("/api/rms/users");const body=$("userRows");body.replaceChildren();d.users.forEach(u=>row(body,[u.nickname,u.role,u.active?"Active":"Pending",u.mustChangePin?"Temporary PIN required":"Set"]));}
   async function loadOverview(){const d=await api("/api/rms/overview");$("dateLine").textContent=`Business date: ${d.date} · Philippine time`;$("plays").textContent=d.metrics.playsToday.toLocaleString();$("issued").textContent=d.metrics.vouchersIssuedToday.toLocaleString();$("redeemed").textContent=d.metrics.vouchersRedeemedToday.toLocaleString();$("outstanding").textContent=d.metrics.outstandingToday.toLocaleString();
     const body=$("prizeRows");body.replaceChildren();d.prizes.forEach(p=>{const remaining=Math.max(0,Number(p.daily_limit)-Number(p.issued_today));const state=!p.active?"Inactive":remaining===0?"Sold out":"Available";row(body,[p.label,p.daily_limit, p.issued_today,remaining,state]);});
@@ -21,7 +38,59 @@
   async function loadAudit(){const d=await api("/api/rms/audit");const body=$("auditRows");body.replaceChildren();if(!d.events.length){row(body,["No audit events yet","","","",""]);return;}d.events.forEach(a=>{let details="";try{details=JSON.stringify(JSON.parse(a.details_json));}catch{}row(body,[fmt(a.created_at),a.display_name||a.username||"System",a.action,a.entity_type+" "+(a.entity_id||""),details]);});}
   async function refresh(){try{if(["owner","admin","manager"].includes(currentStaff?.role)){await Promise.all([loadOverview(),loadVouchers(),loadAudit(),loadPosManagement(),...(currentStaff?.role==="admin"&&String(currentStaff?.username||"").toLowerCase()==="ana"?[loadUsers()]:[])]);}}catch(e){if(e.status===401){show("appContent",false);show("loginPanel",true);}else console.error(e);}}
   function clearIssuedTemporaryPin(){const panel=$("issuedTemporaryPin"),pin=$("issuedPin"),copy=$("copyIssuedPin");if(panel)panel.hidden=true;if(pin)pin.textContent="••••";if(copy)copy.textContent="Copy PIN";}
-  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{clearIssuedTemporaryPin();show("loginPanel",true);show("pinSetupPanel",false);show("appContent",false);show("accessPanel",false);}}
+  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{clearIssuedTemporaryPin();document.querySelector(".layout").classList.add("login-mode");show("loginPanel",true);show("pinSetupPanel",false);show("appContent",false);show("accessPanel",false);}}
+
+  function safeResult(kind,title,message){
+    const el=$("result");el.replaceChildren();el.className="scan-result "+kind;
+    const heading=document.createElement("h3"),detail=document.createElement("p");
+    heading.textContent=title;detail.textContent=message;el.append(heading,detail);show("result",true);
+  }
+  function parseVoucher(raw){
+    const text=String(raw||"").trim();
+    try{const parsed=JSON.parse(text);if(parsed.brand==="HAPKEK"&&parsed.voucher)return String(parsed.voucher).toUpperCase();}catch{}
+    const match=text.match(/HAP-[A-HJ-NP-Z2-9]{10}/i);
+    return match?match[0].toUpperCase():text.toUpperCase();
+  }
+  async function redeem(raw){
+    if(scanBusy)return;
+    const code=parseVoucher(raw);
+    if(!code){safeResult("bad","Voucher code required","Scan a QR code or enter a voucher code.");return;}
+    scanBusy=true;
+    try{
+      const data=await api("/api/staff/redeem",{method:"POST",body:JSON.stringify({code})});
+      safeResult("good","Voucher redeemed",data.voucher.label+" · "+data.voucher.voucher_code);
+      $("manualCode").value="";
+    }catch(error){
+      const status=error.data?.status;
+      safeResult("bad",status==="already_redeemed"?"Already redeemed":error.status===404?"Voucher not found":"Could not redeem",error.message);
+    }finally{
+      scanBusy=false;
+      if(scanner){try{await scanner.resume();}catch{}}
+    }
+  }
+  async function startScanner(){
+    if(!window.Html5Qrcode){safeResult("bad","Scanner unavailable","The camera library did not load. Enter the voucher code manually.");return;}
+    if(scanner)await stopScanner();
+    try{
+      scanner=new Html5Qrcode("reader");
+      await scanner.start({facingMode:"environment"},{fps:10,qrbox:{width:240,height:240}},async decodedText=>{
+        if(scanBusy)return;
+        try{await scanner.pause(true);}catch{}
+        await redeem(decodedText);
+      });
+      show("startScan",false);show("stopScan",true);
+    }catch(error){scanner=null;safeResult("bad","Camera unavailable",error.message+" Check camera permission and use RMS over HTTPS.");}
+  }
+  async function stopScanner(){
+    if(scanner){try{await scanner.stop();await scanner.clear();}catch{}scanner=null;}
+    if($("startScan"))show("startScan",true);
+    if($("stopScan"))show("stopScan",false);
+  }
+  $("startScan").addEventListener("click",startScanner);
+  $("stopScan").addEventListener("click",stopScanner);
+  $("checkCode").addEventListener("click",()=>redeem($("manualCode").value));
+  $("manualCode").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeem(event.target.value);}});
+  document.querySelectorAll(".nav").forEach(link=>link.addEventListener("click",()=>{if(link.id!=="scanNav")stopScanner();}));
 
   const POS_NAMES={bavarian:"Bavarian",cheese:"Cheese",ube:"Ube",choco:"Choco",strawberry:"Strawberry"};
   const POS_PRICE=150,POS_PIECES=15;
@@ -59,8 +128,9 @@
     $("confirmPayment").disabled=posBoxes()===0||(posPayment==="cash"&&!valid);
   }
   function posSetPayment(method){
+    if(posPayment!==method)posRequestId=null;
     posPayment=method;document.querySelectorAll("[data-payment]").forEach(b=>{const active=b.dataset.payment===method;b.classList.toggle("selected",active);b.setAttribute("aria-pressed",String(active));});
-    $("cashFields").hidden=method!=="cash";
+    $("cashFields").hidden=method!=="cash";$("referenceField").hidden=method==="cash";
     $("paymentHint").textContent=method==="cash"?"Enter the amount received from the customer.":"Confirm the "+(method==="gcash"?"GCash transfer":"card payment")+" has been received before continuing.";
     posCartRender();
   }
@@ -69,10 +139,12 @@
     const title=document.createElement("h4");title.textContent="HAPKEK";root.append(title);
     const subtitle=document.createElement("p");subtitle.textContent="JAPANESE CAKE · SALES RECEIPT";root.append(subtitle);
     function add(label,value,cls){const row=document.createElement("div");row.className="receipt-row "+(cls||"");const a=document.createElement("span"),b=document.createElement("strong");a.textContent=label;b.textContent=value;row.append(a,b);root.append(row);}
-    add("Receipt",sale.receiptNo);add("Date",fmt(sale.createdAt));add("Cashier",sale.cashierName);root.append(document.createElement("hr"));
+    add("Receipt",sale.receiptNo);add("Date",fmt(sale.createdAt));add("Cashier",sale.cashierName);if(sale.customerName)add("Customer",sale.customerName);root.append(document.createElement("hr"));
     sale.items.forEach(item=>add((item.flavorLabel||POS_NAMES[item.flavor])+" · "+item.boxes+" box × 15 pcs",posMoney(item.lineTotalPesos)));
     root.append(document.createElement("hr"));add("Total boxes",String(sale.boxes));add("Total pieces",String(sale.pieces));add("TOTAL",posMoney(sale.totalPesos),"receipt-total");add("Payment",sale.paymentMethod.toUpperCase());
     if(sale.paymentMethod==="cash"){add("Cash received",posMoney(sale.amountTenderedPesos));add("Change",posMoney(sale.changeDuePesos));}
+    if(sale.paymentReference)add("Payment reference",sale.paymentReference);
+    if(sale.orderNotes){const note=document.createElement("p");note.className="receipt-note";note.textContent="Order notes: "+sale.orderNotes;root.append(note);}
     const thanks=document.createElement("p");thanks.className="receipt-thanks";thanks.textContent="Thank you for choosing HAPKEK!";root.append(thanks);
   }
   async function loadPosManagement(){
@@ -88,7 +160,7 @@
   function posReset(){
     posFlavor="bavarian";posQty=1;posCart={};posRequestId=null;
     document.querySelectorAll("[data-flavor]").forEach(b=>{const active=b.dataset.flavor===posFlavor;b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",String(active));});
-    $("cashReceived").value="";$("checkoutError").textContent="";$("checkoutPanel").hidden=true;$("receiptPanel").hidden=true;posSetPayment("cash");posProductRender();posCartRender();
+    $("cashReceived").value="";$("customerName").value="";$("orderNotes").value="";$("paymentReference").value="";$("checkoutError").textContent="";$("checkoutPanel").hidden=true;$("receiptPanel").hidden=true;posSetPayment("cash");posProductRender();posCartRender();
   }
   document.querySelectorAll("[data-flavor]").forEach(button=>button.addEventListener("click",()=>{posFlavor=button.dataset.flavor;document.querySelectorAll("[data-flavor]").forEach(b=>{const active=b===button;b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",String(active));});}));
   $("productMinus").addEventListener("click",()=>{posQty=Math.max(1,posQty-1);posProductRender();});
@@ -100,6 +172,7 @@
   $("closeCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=true;});
   document.querySelectorAll("[data-payment]").forEach(b=>b.addEventListener("click",()=>posSetPayment(b.dataset.payment)));
   $("cashReceived").addEventListener("input",posUpdateChange);
+  ["customerName","orderNotes","paymentReference"].forEach(id=>$(id).addEventListener("input",()=>{posRequestId=null;}));
   document.querySelectorAll("[data-cash-exact]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(posTotal());posUpdateChange();}));
   document.querySelectorAll("[data-cash-add]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(posTotal()+Number(b.dataset.cashAdd));posUpdateChange();}));
   $("checkoutForm").addEventListener("submit",async event=>{
@@ -109,7 +182,7 @@
     if(!posRequestId)posRequestId=crypto.randomUUID().replace(/-/g,"");
     const items=Object.entries(posCart).filter(([,n])=>n>0).map(([flavor,boxes])=>({flavor,boxes}));
     $("confirmPayment").disabled=true;$("confirmPayment").textContent="Saving sale…";
-    try{const result=await api("/api/rms/pos/checkout",{method:"POST",body:JSON.stringify({requestId:posRequestId,items,paymentMethod:posPayment,amountTenderedPesos:received})});posReceipt(result.sale);if(["owner","admin","manager"].includes(currentStaff?.role))loadPosManagement().catch(console.error);}
+    try{const result=await api("/api/rms/pos/checkout",{method:"POST",body:JSON.stringify({requestId:posRequestId,items,paymentMethod:posPayment,amountTenderedPesos:received,customerName:$("customerName").value.trim(),orderNotes:$("orderNotes").value.trim(),paymentReference:posPayment==="cash"?"":$("paymentReference").value.trim()})});posReceipt(result.sale);if(["owner","admin","manager"].includes(currentStaff?.role))loadPosManagement().catch(console.error);}
     catch(error){$("checkoutError").textContent=error.message||"Checkout failed. Retry to safely check the same sale request.";}
     finally{posUpdateChange();}
   });
@@ -166,7 +239,7 @@
     }catch(error){$("masterResetMessage").textContent=error.message||"Master reset failed.";}
     finally{button.disabled=false;}
   });
-  $("logout").addEventListener("click",async()=>{try{await api("/api/staff/logout",{method:"POST"});}finally{clearIssuedTemporaryPin();currentStaff=null;show("appContent",false);show("accessPanel",false);show("loginPanel",true);}});
+  $("logout").addEventListener("click",async()=>{await stopScanner();try{await api("/api/staff/logout",{method:"POST"});}finally{clearIssuedTemporaryPin();currentStaff=null;document.querySelector(".layout").classList.add("login-mode");show("appContent",false);show("accessPanel",false);show("loginPanel",true);}});
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
   loadNicknames();session();
 })();
