@@ -103,7 +103,7 @@ The staff app is mobile-first and hosted over HTTPS. Login uses a seeded nicknam
 
 Apply migrations `0002_vouchers.sql`, `0003_staff_redemption.sql`, `0004_rms_foundation.sql`, `0005_nickname_pin_access.sql`, and (for POS) `0006_pos_sales.sql` to the same D1 database. Migration 0005 seeds Ana and Anmer as disabled identities with no usable default PIN. Before opening staff login, run `node scripts/create_staff_user.mjs Ana Ana admin` on a trusted machine, securely deliver the generated one-time PIN to Ana, and execute the generated SQL against the same D1 database. Ana must change that PIN at first login. Do not create a shared or hard-coded default PIN.
 
-Ana's RMS dashboard includes an **Ana-only Staff access** action for Anmer. Only the authenticated account `Ana` can request this operation; the API generates a random 4-digit temporary PIN on the server, hashes it into Anmer's account, invalidates his previous sessions, and returns the clear-text PIN once to Ana's authenticated, no-store dashboard response. Ana must personally deliver the PIN to Anmer. The PIN is not saved in the database or audit log. Anmer logs in with his nickname and temporary PIN, then must choose his own permanent 4-digit PIN immediately. No other manager, administrator, or staff member can issue or view Anmer's temporary PIN through this workflow.
+Ana's RMS dashboard includes an **Ana-only Staff access** action for Anmer. Only the authenticated account `Ana` can request this operation; the API generates a random 4-digit temporary PIN on the server, hashes it into Anmer's account, invalidates his previous sessions, and returns the clear-text PIN once to Ana's authenticated, no-store dashboard response. Ana must personally deliver the PIN to Anmer. The PIN is not saved in the database or audit log. Anmer logs in with his nickname and temporary PIN, then must choose his own permanent 4-digit PIN immediately. No other admin or staff member can issue or view Anmer's temporary PIN through this workflow.
 
 PINs are PBKDF2-HMAC-SHA256 hashes with 210,000 iterations and random salts. Five failed attempts trigger a 15-minute lockout. Sessions are HttpOnly, Secure, SameSite=Strict cookies with a 12-hour lifetime. PIN changes invalidate other sessions. The server enforces roles and the forced PIN-change state; client-side visibility is not an authorization boundary.
 
@@ -116,7 +116,7 @@ The first RMS release is an operations console for the existing shared game/vouc
 
 ### RMS v1 includes
 
-- `rms/`: owner/administrator/manager dashboard for today's game submissions, voucher issuance/redemption counts, daily prize allocation, voucher ledger, and recent audit activity.
+- `rms/`: admin dashboard for today's game submissions, voucher issuance/redemption counts, daily prize allocation, voucher ledger, and recent audit activity.
 - `staff-app/`: staff voucher scanner and redemption interface.
 - Shared Worker API and D1 records; RMS does not maintain a separate voucher database.
 - Staff roles are limited to `admin` and `staff`. Management reporting is server-authorized; staff retain scanner access only.
