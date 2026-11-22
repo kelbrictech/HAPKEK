@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#321912"><title>HAPKEK RMS | Sign in</title><link rel="stylesheet" href="rms.css?v=20261122-login2">
+<meta name="theme-color" content="#321912"><title>HAPKEK RMS | Sign in</title><link rel="stylesheet" href="rms.css?v=20261122-mwg1">
 </head>
 <body class="auth-landing">
-<div class="layout login-mode">
+<div class="layout">
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="./">HAPKEK <span>RMS</span></a>
     <div class="side-label">OPERATIONS</div>
@@ -29,9 +29,16 @@
       <p class="auth-intro">Use your assigned staff account to open your workspace.</p>
       <form id="loginForm">
         <label for="nickname">Staff account</label>
-        <select id="nickname" required><option value="">Loading active accounts…</option></select>
+        <select id="nickname" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required data-error="accountFieldError">
+          <option value="" disabled selected>Loading active accounts…</option>
+        </select>
+        <span id="accountFieldError" class="field-error">Choose your assigned staff account.</span>
         <label for="pin">4-digit PIN</label>
-        <input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" placeholder="Enter your PIN" required>
+        <div class="pin-input-wrap">
+          <input id="pin" name="password" type="password" inputmode="numeric" enterkeyhint="done" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" placeholder="Enter your PIN" required data-error="pinFieldError">
+          <button id="togglePin" class="pin-toggle" type="button" aria-controls="pin" aria-pressed="false">Show PIN</button>
+          <span id="pinFieldError" class="field-error">Enter your 4-digit PIN.</span>
+        </div>
         <button class="primary auth-submit" type="submit">Sign in</button>
         <p id="loginError" class="error" role="alert"></p>
       </form>
@@ -44,8 +51,8 @@
       <h1 id="pinSetupTitle">Create your PIN</h1>
       <p class="auth-intro">Set a new 4-digit PIN to secure your RMS account.</p>
       <form id="pinForm">
-        <label for="newPin">New 4-digit PIN</label><input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Choose a new PIN" required>
-        <label for="confirmPin">Confirm new PIN</label><input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Re-enter your PIN" required>
+        <label for="newPin">New 4-digit PIN</label><input id="newPin" name="new-password" type="password" inputmode="numeric" enterkeyhint="next" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Choose a new PIN" required>
+        <label for="confirmPin">Confirm new PIN</label><input id="confirmPin" name="confirm-new-password" type="password" inputmode="numeric" enterkeyhint="done" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Re-enter your PIN" required>
         <button class="primary auth-submit" type="submit">Save PIN and continue</button>
         <p id="pinError" class="error" role="alert"></p>
       </form>
@@ -185,5 +192,5 @@
     </div>
   </main>
 </div>
-<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261122-login2"></script>
+<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261122-mwg1"></script>
 </body></html>
