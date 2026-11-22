@@ -106,7 +106,7 @@
       const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Add one "+POS_NAMES[flavor]+" box");plus.dataset.cartFlavor=flavor;plus.dataset.cartDelta="1";
       step.append(minus,qty,plus);right.append(price,step);line.append(main,right);list.append(line);
     });
-    const boxes=posBoxes(),total=posTotal();$("cartBoxCount").textContent=boxes+" "+(boxes===1?"box":"boxes");$("orderBoxes").textContent=boxes;$("orderPieces").textContent=(boxes*POS_PIECES)+" pcs";$("orderTotal").textContent=posMoney(total);$("checkoutTotal").textContent=posMoney(total);$("openCheckout").disabled=!boxes;
+    const boxes=posBoxes(),total=posTotal();$("cartBoxCount").textContent=boxes+" "+(boxes===1?"box":"boxes");$("orderBoxes").textContent=boxes+" "+(boxes===1?"box":"boxes");$("orderPieces").textContent=(boxes*POS_PIECES)+" pcs";$("orderTotal").textContent=posMoney(total);$("checkoutTotal").textContent=posMoney(total);$("openCheckout").disabled=!boxes;
     $("confirmPayment").textContent="Confirm "+posPayment.toUpperCase()+" payment · "+posMoney(total);posUpdateChange();
   }
   function posAdd(flavor,count){
