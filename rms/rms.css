@@ -272,3 +272,14 @@ body.auth-landing .login-panel[hidden] { display: none !important; }
 @media (min-width: 56.25rem) {
   body.auth-landing .main { padding: 2.5rem; }
 }
+
+/* Restored staff authentication screens */
+body.auth-landing .main{display:grid;place-items:center;min-height:100vh;min-height:100dvh;padding:24px}
+.auth-panel{width:min(100%,430px);margin:auto}
+.auth-card{background:#fffdf9;border:1px solid #e8ded2;border-radius:18px;padding:28px;box-shadow:0 12px 40px #47261112}
+.auth-card h2{margin:0 0 10px;color:#3a2118;font-size:26px}
+.auth-card label{display:block;margin:16px 0 7px;font-size:13px;font-weight:750;color:#5d493d}
+.auth-card input,.auth-card select{display:block;width:100%;min-height:48px;padding:12px;border:1px solid #d8cabc;border-radius:9px;background:#fff;font:inherit;font-size:16px}
+.auth-card button{margin-top:12px;min-height:48px}
+.auth-card .error{min-height:18px;margin:10px 0}
+body.auth-landing #mainHeader{display:none!important}
