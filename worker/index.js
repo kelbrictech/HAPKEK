@@ -238,30 +238,46 @@ async function rmsUsers(env) {
   const rows=await env.DB.prepare(`SELECT id,username,display_name,role,active,must_change_pin,locked_until FROM hapkek_staff_users ORDER BY display_name COLLATE NOCASE`).all();
   return reply({users:(rows.results||[]).map(u=>({nickname:u.display_name,role:u.role,active:Boolean(u.active),mustChangePin:Boolean(u.must_change_pin),locked:Boolean(Number(u.locked_until||0)>Math.floor(Date.now()/1000))}))});
 }
+function generateStaffTemporaryPin() {
+  const range = 0x100000000;
+  const limit = Math.floor(range / 10000) * 10000;
+  const value = new Uint32Array(1);
+  do { crypto.getRandomValues(value); } while (value[0] >= limit);
+  return String(value[0] % 10000).padStart(4, "0");
+}
 async function rmsIssueTemporaryPin(request,env,admin) {
-  let body; try{body=await request.json();}catch{return reply({error:"Invalid request"},400);}
-  const nickname=String(body?.nickname||"").trim().replace(/[<>\u0000-\u001f]/g,"").slice(0,20);
-  const pin=String(body?.temporaryPin||"");
-  if(!nickname||!/^\d{4}$/.test(pin)) return reply({error:"Choose a nickname and a 4-digit temporary PIN"},400);
-  if(nickname.toLowerCase()==="ana") return reply({error:"Ana's account is managed through webmaster recovery"},403);
-  let user=await env.DB.prepare("SELECT id,username,display_name,role FROM hapkek_staff_users WHERE username=? COLLATE NOCASE").bind(nickname).first();
-  if(!user){
-    const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
-    const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
-    const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
-    const hash=bytesToHex(new Uint8Array(bits));
-    await env.DB.prepare(`INSERT INTO hapkek_staff_users(username,display_name,password_salt,password_hash,active,role,must_change_pin) VALUES(?,?,?,?,1,'staff',1)`).bind(nickname,nickname,salt,hash).run();
-    user=await env.DB.prepare("SELECT id,username,display_name,role FROM hapkek_staff_users WHERE username=? COLLATE NOCASE").bind(nickname).first();
-  }else{
-    const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
-    const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
-    const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
-    const hash=bytesToHex(new Uint8Array(bits));
-    await env.DB.prepare(`UPDATE hapkek_staff_users SET password_salt=?,password_hash=?,active=1,must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE id=?`).bind(salt,hash,user.id).run();
-  }
+  // Ana is the designated initial administrator and the only person permitted
+  // to issue Anmer's temporary PIN. Do not accept a PIN supplied by the browser.
+  if (String(admin?.username || "").toLowerCase() !== "ana")
+    return reply({error:"Only Ana can issue Anmer's temporary PIN"},403);
+  let body; try { body=await request.json(); } catch { return reply({error:"Invalid request"},400); }
+  const nickname=String(body?.nickname || "").trim();
+  if (nickname.toLowerCase() !== "anmer")
+    return reply({error:"This action is reserved for Anmer's staff account"},403);
+  const user=await env.DB.prepare(
+    "SELECT id,username,display_name,role FROM hapkek_staff_users WHERE username='Anmer' COLLATE NOCASE"
+  ).first();
+  if (!user || String(user.role || "").toLowerCase() !== "staff")
+    return reply({error:"Anmer's pre-provisioned staff account was not found"},404);
+
+  const pin=generateStaffTemporaryPin();
+  const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
+  const hash=bytesToHex(new Uint8Array(bits));
+
+  await env.DB.prepare(`UPDATE hapkek_staff_users
+    SET password_salt=?,password_hash=?,active=1,must_change_pin=1,failed_pin_attempts=0,locked_until=0
+    WHERE id=?`).bind(salt,hash,user.id).run();
   await env.DB.prepare("DELETE FROM hapkek_staff_sessions WHERE staff_id=?").bind(user.id).run();
-  await rmsAudit(env,admin,"staff.temporary_pin_issued","staff",user.username,{role:"staff"});
-  return reply({ok:true,nickname:user.display_name,requiresPinChange:true});
+  await rmsAudit(env,admin,"staff.temporary_pin_issued","staff",user.username,{
+    role:"staff",issued_by:"Ana",delivery:"manual_by_Ana",requires_pin_change:true
+  });
+  // The clear-text PIN is returned only in this authenticated response to Ana.
+  // It is never stored in the database, audit log, or shared staff directory.
+  return reply({ok:true,nickname:user.display_name,temporaryPin:pin,requiresPinChange:true},200,{
+    "Cache-Control":"no-store, private"
+  });
 }
 
 const RMS_READ_ROLES = new Set(["owner", "admin", "manager"]);
