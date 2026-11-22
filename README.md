@@ -122,7 +122,7 @@ The first RMS release is an operations console for the existing shared game/vouc
 - Shared Worker API and D1 records; RMS does not maintain a separate voucher database.
 - Staff roles: `admin` and `staff` are the active v1 roles; the schema retains `owner` and `manager` for later expansion. Management reporting is server-authorized; staff retain scanner access only.
 - Migration `database/migrations/0004_rms_foundation.sql`: staff role column and RMS audit log.
-- Migration `database/migrations/0005_nickname_pin_access.sql`: Ana/Anmer seed accounts, hashed temporary PIN, forced PIN change, failed-attempt lockout fields.
+- Migration `database/migrations/0005_nickname_pin_access.sql`: Ana/Anmer seed accounts disabled until secure PIN provisioning, forced PIN change, failed-attempt lockout fields.
 
 ### Apply and configure
 
