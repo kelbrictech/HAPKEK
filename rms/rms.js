@@ -123,7 +123,7 @@
     if(posPayment!==method)posRequestId=null;
     posPayment=method;document.querySelectorAll("[data-payment]").forEach(b=>{const active=b.dataset.payment===method;b.classList.toggle("selected",active);b.setAttribute("aria-pressed",String(active));});
     $("cashFields").hidden=method!=="cash";$("referenceField").hidden=method==="cash";
-    $("paymentHint").textContent=method==="cash"?"Enter the amount received from the customer.":"Confirm the "+(method==="gcash"?"GCash transfer":"card payment")+" has been received before continuing.";
+    $("paymentHint").textContent=method==="cash"?"Enter the amount received from the customer.":"Confirm the "+(method==="gcash"?"GCash transfer":method==="maya"?"Maya transfer":"card payment")+" has been received before continuing.";
     posCartRender();
   }
   function posReceipt(sale){
@@ -168,8 +168,7 @@
   document.querySelectorAll("[data-payment]").forEach(b=>b.addEventListener("click",()=>posSetPayment(b.dataset.payment)));
   $("cashReceived").addEventListener("input",posUpdateChange);
   ["customerName","orderNotes","paymentReference"].forEach(id=>$(id).addEventListener("input",()=>{posRequestId=null;}));
-  document.querySelectorAll("[data-cash-exact]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(posTotal());posUpdateChange();}));
-  document.querySelectorAll("[data-cash-add]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(posTotal()+Number(b.dataset.cashAdd));posUpdateChange();}));
+  document.querySelectorAll("[data-cash-tender]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(Number(b.dataset.cashTender));posUpdateChange();}));
   $("checkoutForm").addEventListener("submit",async event=>{
     event.preventDefault();$("checkoutError").textContent="";const due=posTotal(),received=posPayment==="cash"?Number($("cashReceived").value):due;
     if(!posBoxes()){ $("checkoutError").textContent="Add at least one box.";return; }
@@ -231,33 +230,33 @@
   const initialView=location.hash.slice(1);
   activateView(viewIds.includes(initialView)?initialView:"pos");
 
-  // POS is a three-stage counter flow; cart and totals remain visible throughout.
+  // Three-state counter flow. Order drawer is an accordion within state one.
   const posScreen=$("pos");
   posScreen.dataset.posStage="1";
-  // Keep checkout in the active POS workspace column, not below the viewport.\n  $("pos").querySelector(".pos-product-area").append($("checkoutPanel"));\n  $("overview").append($("posManagement"));\n  const flow=document.createElement("div");flow.className="rms-flow";flow.setAttribute("aria-label","Sale progress");
-  flow.innerHTML='<span class="rms-flow-step active" data-flow-step="1"><b>1</b> Build order</span><i class="rms-flow-line"></i><span class="rms-flow-step" data-flow-step="2"><b>2</b> Details</span><i class="rms-flow-line"></i><span class="rms-flow-step" data-flow-step="3"><b>3</b> Payment</span>';
-  $("pos").querySelector(".pos-heading").after(flow);
-  const actions=document.createElement("div");actions.className="flow-actions";actions.innerHTML='<p class="flow-hint" id="flowHint">Choose flavors and add boxes to the order.</p><button type="button" class="outline" id="flowBack" hidden>Back</button><button type="button" class="primary" id="flowNext">Continue to details →</button>';
-  $("pos").append(actions);
+  $("pos").querySelector(".pos-product-area").append($("checkoutPanel"));
+  $("overview").append($("posManagement"));
   function setPosStage(stage){
-    const next=Math.max(1,Math.min(3,stage));posScreen.dataset.posStage=String(next);
-    document.querySelectorAll("[data-flow-step]").forEach(el=>{const n=Number(el.dataset.flowStep);el.classList.toggle("active",n===next);el.classList.toggle("done",n<next);});
-    $("flowBack").hidden=next===1;
-    $("flowNext").hidden=next===3;
-    $("flowNext").textContent=next===1?"Continue to details →":"Continue to payment →";
-    $("flowHint").textContent=next===1?"Choose flavors and add boxes to the order.":next===2?"Customer name and notes are optional.":"Review the order summary, then confirm payment.";
-    if(next===3){$("checkoutPanel").hidden=false;$("receiptPanel").hidden=true;$("cashReceived").value=String(posTotal());posSetPayment(posPayment);posCartRender();}
-    else $("checkoutPanel").hidden=true;
+    const next=Math.max(1,Math.min(3,stage));
+    posScreen.dataset.posStage=String(next);
+    $("checkoutPanel").hidden=next!==2;
+    $("receiptPanel").hidden=next!==3;
+    posScreen.classList.toggle("has-receipt",next===3);
+    if(next===2){
+      $("cashReceived").value=String(posTotal());
+      $("checkoutError").textContent="";
+      posSetPayment(posPayment);
+      posCartRender();
+    }
   }
-  $("flowNext").addEventListener("click",()=>{
-    const stage=Number(posScreen.dataset.posStage);
-    if(stage===1){if(!posBoxes()){$("flowHint").textContent="Add at least one box before continuing.";return;}setPosStage(2);}
-    else if(stage===2){setPosStage(3);}
+  $("openCheckout").addEventListener("click",()=>{if(posBoxes())setPosStage(2);});
+  $("closeCheckout").addEventListener("click",()=>setPosStage(1));
+  $("newSale").addEventListener("click",()=>{posReset();setPosStage(1);activateView("pos");});
+  const drawerButton=$("cartDrawerToggle");
+  if(drawerButton)drawerButton.addEventListener("click",()=>{
+    const details=$("cartDrawerDetails"),expanded=drawerButton.getAttribute("aria-expanded")==="true";
+    details.hidden=expanded;drawerButton.setAttribute("aria-expanded",String(!expanded));
+    posScreen.classList.toggle("cart-expanded",!expanded);
   });
-  $("flowBack").addEventListener("click",()=>setPosStage(Number(posScreen.dataset.posStage)-1));
-  $("openCheckout").addEventListener("click",()=>setPosStage(3));
-  $("closeCheckout").addEventListener("click",()=>setPosStage(2));
-  $("newSale").addEventListener("click",()=>{setPosStage(1);activateView("pos");});
   setPosStage(1);
   session();
 })();
