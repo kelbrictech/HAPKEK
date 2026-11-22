@@ -26,5 +26,16 @@ checks={
  "dropdown login in RMS": 'id="nickname"' in rms and 'id="username"' not in rms,
  "admin staff management UI": 'id="userAccessForm"' in rms and 'id="staffNickname"' in rms,
 }
+checks.update({
+ "only Ana may issue Anmer PIN": 'String(admin?.username || "").toLowerCase() !== "ana"' in worker,
+ "API only targets Anmer": 'nickname.toLowerCase() !== "anmer"' in worker,
+ "temporary PIN generated server-side": "generateStaffTemporaryPin()" in worker and "const pin=generateStaffTemporaryPin()" in worker,
+ "browser cannot choose Anmer PIN": "body?.temporaryPin" not in worker[worker.indexOf("async function rmsIssueTemporaryPin"):worker.indexOf("const RMS_READ_ROLES")],
+ "PIN returned in no-store authenticated response": "temporaryPin:pin" in worker and '"Cache-Control":"no-store, private"' in worker,
+ "Ana manually delivers PIN": 'delivery:"manual_by_Ana"' in worker and "Share it directly with Anmer yourself" in rms,
+ "PIN excluded from audit details": 'rmsAudit(env,admin,"staff.temporary_pin_issued"' in worker and 'temporaryPin:pin' not in worker[worker.indexOf("async function rmsAudit"):worker.indexOf("const RMS_READ_ROLES")],
+ "RMS shows PIN in dedicated panel": 'id="issuedTemporaryPin"' in rms and 'id="issuedPin"' in rms,
+ "PIN copy control": 'navigator.clipboard.writeText(pin)' in rms,
+})
 for label,ok in checks.items(): print(("PASS " if ok else "FAIL ")+label)
 if not all(checks.values()): raise SystemExit(1)
