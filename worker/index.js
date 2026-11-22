@@ -420,6 +420,7 @@ async function posLoadSale(env,requestId,duplicate=false) {
   return {id:Number(sale.id),receiptNo:sale.receipt_no,boxes:Number(sale.boxes_sold),pieces:Number(sale.pieces_sold),
     unitPricePesos:Number(sale.unit_price_pesos),totalPesos:Number(sale.total_pesos),paymentMethod:sale.payment_method,
     amountTenderedPesos:Number(sale.amount_tendered_pesos),changeDuePesos:Number(sale.change_due_pesos),
+    customerName:sale.customer_name||"",orderNotes:sale.order_notes||"",paymentReference:sale.payment_reference||"",
     cashierName:sale.cashier_name,createdAt:sale.created_at,
     items:(rows.results||[]).map(x=>({flavor:x.flavor,flavorLabel:POS_FLAVOR_LABELS[x.flavor],boxes:Number(x.boxes),pieces:Number(x.pieces),unitPricePesos:Number(x.unitPricePesos),lineTotalPesos:Number(x.lineTotalPesos)})),
     duplicate};
@@ -440,13 +441,18 @@ async function rmsPosCheckout(request,env,staff) {
   }
   if(boxes<1||boxes>POS_MAX_BOXES)return reply({error:"An order can contain between 1 and 99 boxes"},400);
   const total=boxes*POS_UNIT_PRICE_PESOS;
+  const customerName=String(body?.customerName||"").replace(/[<>\\u0000-\\u001f]/g,"").trim();
+  const orderNotes=String(body?.orderNotes||"").replace(/[<>\\u0000-\\u001f]/g,"").trim();
+  const paymentReference=String(body?.paymentReference||"").replace(/[<>\\u0000-\\u001f]/g,"").trim();
+  if(customerName.length>80||orderNotes.length>500||paymentReference.length>100)
+    return reply({error:"Customer name, order notes, or payment reference is too long"},400);
   const tendered=paymentMethod==="cash"?Number(body?.amountTenderedPesos):total;
   if(!Number.isSafeInteger(tendered)||tendered<total)return reply({error:"Cash received must be a whole peso amount at least equal to the total"},400);
   const duplicate=await posLoadSale(env,requestId,true);
   if(duplicate)return reply({ok:true,sale:duplicate},200);
   const receiptNo=posReceiptNumber(),createdAt=new Date().toISOString();
-  const statements=[env.DB.prepare("INSERT INTO hapkek_pos_sales (receipt_no,client_request_id,boxes_sold,pieces_sold,unit_price_pesos,total_pesos,payment_method,amount_tendered_pesos,change_due_pesos,cashier_staff_id,cashier_name,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(receiptNo,requestId,boxes,boxes*POS_PIECES_PER_BOX,POS_UNIT_PRICE_PESOS,total,paymentMethod,tendered,tendered-total,staff.id,staff.display_name,createdAt)];
+  const statements=[env.DB.prepare("INSERT INTO hapkek_pos_sales (receipt_no,client_request_id,boxes_sold,pieces_sold,unit_price_pesos,total_pesos,payment_method,amount_tendered_pesos,change_due_pesos,cashier_staff_id,cashier_name,created_at,customer_name,order_notes,payment_reference) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(receiptNo,requestId,boxes,boxes*POS_PIECES_PER_BOX,POS_UNIT_PRICE_PESOS,total,paymentMethod,tendered,tendered-total,staff.id,staff.display_name,createdAt,customerName,orderNotes,paymentReference)];
   for(const item of items)statements.push(env.DB.prepare("INSERT INTO hapkek_pos_sale_items (sale_id,flavor,boxes_sold,pieces_sold,unit_price_pesos,line_total_pesos) SELECT id,?,?,?,?,? FROM hapkek_pos_sales WHERE client_request_id=?")
     .bind(item.flavor,item.boxes,item.pieces,POS_UNIT_PRICE_PESOS,item.lineTotal,requestId));
   try{await env.DB.batch(statements);}catch(error){
@@ -455,7 +461,7 @@ async function rmsPosCheckout(request,env,staff) {
   }
   const sale=await posLoadSale(env,requestId,false);
   if(!sale)return reply({error:"Sale saved but receipt could not be loaded. Check recent sales before retrying."},500);
-  try{await rmsAudit(env,staff,"pos.sale_created","pos_sale",sale.receiptNo,{boxes:sale.boxes,pieces:sale.pieces,totalPesos:sale.totalPesos,paymentMethod,items:sale.items.map(x=>({flavor:x.flavor,boxes:x.boxes}))});}
+  try{await rmsAudit(env,staff,"pos.sale_created","pos_sale",sale.receiptNo,{boxes:sale.boxes,pieces:sale.pieces,totalPesos:sale.totalPesos,paymentMethod,customerName,orderNotes,paymentReference,items:sale.items.map(x=>({flavor:x.flavor,boxes:x.boxes}))});}
   catch(error){console.error("POS audit write failed",error);}
   return reply({ok:true,sale},201);
 }
@@ -473,7 +479,8 @@ async function rmsPosSales(url,env) {
   for(const row of rows.results||[]){
     const items=await env.DB.prepare("SELECT flavor,boxes_sold AS boxes,pieces_sold AS pieces FROM hapkek_pos_sale_items WHERE sale_id=? ORDER BY flavor").bind(row.id).all();
     sales.push({id:Number(row.id),receiptNo:row.receipt_no,boxes:Number(row.boxes_sold),pieces:Number(row.pieces_sold),totalPesos:Number(row.total_pesos),
-      paymentMethod:row.payment_method,cashierName:row.cashier_name,createdAt:row.created_at,
+      paymentMethod:row.payment_method,customerName:row.customer_name||"",orderNotes:row.order_notes||"",paymentReference:row.payment_reference||"",
+      cashierName:row.cashier_name,createdAt:row.created_at,
       items:(items.results||[]).map(x=>({flavor:x.flavor,label:POS_FLAVOR_LABELS[x.flavor]||x.flavor,boxes:Number(x.boxes),pieces:Number(x.pieces)}))});
   }
   return reply({sales});
