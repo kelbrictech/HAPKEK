@@ -1,14 +1,36 @@
-// Usage: node scripts/create_staff_user.mjs <username> <display-name> <password> [owner|admin|manager|staff]
+// Usage: node scripts/create_staff_user.mjs <nickname> <display-name> [owner|admin|manager|staff]
+// Generates a one-time 4-digit PIN and SQL that activates or resets that staff identity.
+// Run on a trusted machine. Share the generated PIN only with its intended recipient.
 import { webcrypto } from 'node:crypto';
-const [username, displayName, password, role = "staff"] = process.argv.slice(2);
-if (!username || !displayName || !password || password.length < 12 || !["owner","admin","manager","staff"].includes(role)) {
-  console.error('Usage: node scripts/create_staff_user.mjs <username> <display-name> <password at least 12 chars> [owner|admin|manager|staff]');
+
+const [username, displayName, role = "staff"] = process.argv.slice(2);
+if (!username || !displayName || username.length > 20 || displayName.length > 40 ||
+    !["owner", "admin", "manager", "staff"].includes(role)) {
+  console.error("Usage: node scripts/create_staff_user.mjs <nickname> <display-name> [owner|admin|manager|staff]");
   process.exit(1);
 }
-const enc = new TextEncoder();
+
+const randomInt = max => {
+  const range = 0x100000000;
+  const limit = Math.floor(range / max) * max;
+  const bytes = new Uint32Array(1);
+  do { webcrypto.getRandomValues(bytes); } while (bytes[0] >= limit);
+  return bytes[0] % max;
+};
+const pin = String(randomInt(10000)).padStart(4, "0");
 const salt = webcrypto.getRandomValues(new Uint8Array(16));
-const key = await webcrypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-const bits = await webcrypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:210000,hash:'SHA-256'},key,256);
-const hex = a => Array.from(new Uint8Array(a),b=>b.toString(16).padStart(2,'0')).join('');
-const esc = s => "'" + s.replace(/'/g,"''") + "'";
-console.log(`INSERT INTO hapkek_staff_users(username,display_name,password_salt,password_hash,active,role) VALUES(${esc(username)},${esc(displayName)},'${hex(salt)}','${hex(bits)}',1,${esc(role)});`);
+const key = await webcrypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
+const bits = await webcrypto.subtle.deriveBits({name:"PBKDF2", salt, iterations:210000, hash:"SHA-256"}, key, 256);
+const hex = value => Array.from(new Uint8Array(value), b => b.toString(16).padStart(2, "0")).join("");
+const esc = value => "'" + value.replace(/'/g, "''") + "'";
+const sql = `INSERT INTO hapkek_staff_users
+(username,display_name,password_salt,password_hash,active,role,must_change_pin,failed_pin_attempts,locked_until)
+VALUES(${esc(username)},${esc(displayName)},'${hex(salt)}','${hex(bits)}',1,${esc(role)},1,0,0)
+ON CONFLICT(username) DO UPDATE SET
+display_name=excluded.display_name,password_salt=excluded.password_salt,
+password_hash=excluded.password_hash,active=1,role=excluded.role,
+must_change_pin=1,failed_pin_attempts=0,locked_until=0;`;
+
+console.log("ONE-TIME TEMPORARY PIN (share securely): " + pin);
+console.log("\nRun this SQL against the target HAPKEK D1 database:\n");
+console.log(sql);
