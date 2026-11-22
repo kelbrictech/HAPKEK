@@ -33,6 +33,7 @@ jobs:
         run: |
           node --check worker/index.js
           node --check rms/rms.js
+          node --check staff-app/staff.js
           node --check scripts/create_staff_user.mjs
           node --check scripts/provision_webmaster.mjs
 
