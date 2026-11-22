@@ -362,7 +362,7 @@ async function rmsPosCheckout(request,env,staff) {
   let body;try{body=await request.json();}catch{return reply({error:"Invalid checkout request"},400);}
   const requestId=String(body?.requestId||""),paymentMethod=String(body?.paymentMethod||"cash").toLowerCase();
   if(!/^[A-Za-z0-9_-]{16,80}$/.test(requestId))return reply({error:"A valid checkout request ID is required"},400);
-  if(!["cash","gcash","card"].includes(paymentMethod))return reply({error:"Choose cash, GCash, or card"},400);
+  if(!["cash","gcash","maya","card"].includes(paymentMethod))return reply({error:"Choose cash, GCash, Maya, or card"},400);
   if(!Array.isArray(body?.items)||body.items.length<1||body.items.length>5)return reply({error:"Choose at least one flavor"},400);
   const seen=new Set(),items=[];let boxes=0;
   for(const item of body.items){
