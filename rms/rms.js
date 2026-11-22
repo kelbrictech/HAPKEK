@@ -192,6 +192,7 @@
   const viewIds=["pos","scan","overview","vouchers","campaign","audit"];
   function activateView(id){
     if(!viewIds.includes(id))id="pos";
+    if(["overview","vouchers","campaign","audit"].includes(id)&&currentStaff?.role!=="admin")id="pos";
     const target=$(id);if(!target)return;
     viewIds.forEach(view=>{const el=$(view);if(el)el.classList.toggle("is-active",view===id);});
     document.querySelectorAll(".nav[data-view]").forEach(link=>{const active=link.dataset.view===id;link.classList.toggle("active",active);if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");});
@@ -214,7 +215,17 @@
   $("menuToggle").addEventListener("click",()=>setMenu(!document.body.classList.contains("menu-open")));
   $("drawerBackdrop").addEventListener("click",()=>setMenu(false));
   document.querySelectorAll(".nav[data-view]").forEach(link=>link.addEventListener("click",event=>{event.preventDefault();activateView(link.dataset.view);}));
-  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&document.body.classList.contains("menu-open")){$("menuToggle").focus();setMenu(false);}});
+  document.addEventListener("keydown",event=>{
+    if(!document.body.classList.contains("menu-open"))return;
+    if(event.key==="Escape"){$("menuToggle").focus();setMenu(false);return;}
+    if(event.key==="Tab"){
+      const focusable=Array.from($("sidebar").querySelectorAll('a[href]:not([hidden]),button:not([hidden])')).filter(el=>el.offsetParent!==null);
+      if(!focusable.length)return;
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    }
+  });
   viewIds.forEach(id=>{const el=$(id);if(el)el.classList.add("workspace-view");});
   const initialView=location.hash.slice(1);
   activateView(viewIds.includes(initialView)?initialView:"pos");
