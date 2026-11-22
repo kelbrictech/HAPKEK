@@ -11,7 +11,7 @@ import { webcrypto } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
 const pin = process.env.HAPKEK_BOOTSTRAP_PIN || "";
-if (!/^\\d{4}$/.test(pin)) {
+if (!/^\d{4}$/.test(pin)) {
   console.error("Set HAPKEK_BOOTSTRAP_PIN to your four-digit one-time PIN, then rerun this script.");
   process.exit(1);
 }
