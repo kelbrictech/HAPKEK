@@ -441,9 +441,9 @@ async function rmsPosCheckout(request,env,staff) {
   }
   if(boxes<1||boxes>POS_MAX_BOXES)return reply({error:"An order can contain between 1 and 99 boxes"},400);
   const total=boxes*POS_UNIT_PRICE_PESOS;
-  const customerName=String(body?.customerName||"").replace(/[<>\\x00-\\x1f]/g,"").trim();
-  const orderNotes=String(body?.orderNotes||"").replace(/[<>\\x00-\\x1f]/g,"").trim();
-  const paymentReference=String(body?.paymentReference||"").replace(/[<>\\x00-\\x1f]/g,"").trim();
+  const customerName=String(body?.customerName||"").replace(/[<>\x00-\x1f]/g,"").trim();
+  const orderNotes=String(body?.orderNotes||"").replace(/[<>\x00-\x1f]/g,"").trim();
+  const paymentReference=String(body?.paymentReference||"").replace(/[<>\x00-\x1f]/g,"").trim();
   if(customerName.length>80||orderNotes.length>500||paymentReference.length>100)
     return reply({error:"Customer name, order notes, or payment reference is too long"},400);
   const tendered=paymentMethod==="cash"?Number(body?.amountTenderedPesos):total;
