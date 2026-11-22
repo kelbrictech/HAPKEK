@@ -146,7 +146,7 @@ Host `rms/` and `staff-app/` over HTTPS. Configure `window.HAPKEK_RMS_API` in `r
 - Dashboard metrics are based on existing game score submissions and voucher records; they are not POS sales or revenue.
 - Voucher list is capped at the most recent 100 records per request.
 - The dashboard is read-only. Prize allocations are deliberately not editable from the web UI in v1.
-- POS, product stock, supplier purchasing, CRM, payment integrations, shift management, and online storefront synchronization are future modules.
+- Product stock decrement, supplier purchasing, CRM, payment gateway integrations, shift management, and online storefront synchronization remain future modules.
 - This package is a build artifact; live deployment, production D1 migration, real staff login, and end-to-end browser verification must be completed before launch.
 
 
@@ -163,3 +163,20 @@ The pre-RMS production baseline remains tracked at the repository root and is de
 The RMS branch adds a separate combined Worker source at `worker/index.js`, plus `wrangler.toml`, voucher/staff/RMS APIs, and the extended D1 schema under `database/schema.sql`. These are source changes only. The combined Worker has not been deployed, and the Wrangler configuration still contains a placeholder D1 database ID. Do not deploy until the database ID, migration plan, origin configuration, bootstrap credentials, and end-to-end behavior have been reviewed and approved.
 
 The game source and all linked assets are located at the repository root after the RMS source upload was normalized. Do not replace the existing production Worker or production database schema as part of a source-only cleanup.
+
+
+## POS source implementation
+
+The RMS Point of Sale is available to authenticated staff after a completed PIN setup. Management roles additionally see sales reporting.
+
+- Fixed price: PHP 150 per box.
+- Box size: 15 pieces.
+- Flavors: Bavarian, Cheese, Ube, Choco, Strawberry.
+- Each box is one flavor; one order can contain multiple flavor lines.
+- Cash checkout calculates tender and change. GCash/card are manual confirmation records only; no payment gateway is connected.
+- Sales are attributed to the authenticated cashier and stored in `hapkek_pos_sales` and `hapkek_pos_sale_items`.
+- Unique client request IDs prevent accidental duplicate sales on retry.
+- Migration: `database/migrations/0006_pos_sales.sql`. Review and apply only after approving the target D1 database.
+- No inventory decrement, voucher discount, void, or refund flow is included.
+
+This is a source-branch implementation only. It has not been deployed or connected to production D1.
