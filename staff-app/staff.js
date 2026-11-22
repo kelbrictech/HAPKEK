@@ -127,6 +127,7 @@
   });
 
   function setPayment(method){
+    if(paymentMethod!==method)requestId=null;
     paymentMethod=method;
     document.querySelectorAll("[data-payment]").forEach(button=>{
       const active=button.dataset.payment===method;button.classList.toggle("selected",active);button.setAttribute("aria-pressed",String(active));
@@ -143,6 +144,7 @@
   }
   document.querySelectorAll("[data-payment]").forEach(button=>button.addEventListener("click",()=>setPayment(button.dataset.payment)));
   $("cashReceived").addEventListener("input",updatePayment);
+  ["customerName","orderNotes","paymentReference"].forEach(id=>$(id).addEventListener("input",()=>{if(!checkoutBusy)requestId=null;}));
   document.querySelectorAll("[data-cash]").forEach(button=>button.addEventListener("click",()=>{
     const value=button.dataset.cash==="exact"?total():total()+Number(button.dataset.cash);
     $("cashReceived").value=String(value);updatePayment();
@@ -167,7 +169,7 @@
       amountTenderedPesos:received,
       customerName:$("customerName").value.trim(),
       orderNotes:$("orderNotes").value.trim(),
-      paymentReference:$("paymentReference").value.trim()
+      paymentReference:paymentMethod==="cash"?"":$("paymentReference").value.trim()
     };
     checkoutBusy=true;updatePayment();$("checkoutError").textContent="";$("confirmPayment").textContent="Saving sale…";
     try{
@@ -243,7 +245,7 @@
     }
   }
   async function stopScanner(){
-    if(scanner){try{if(scanner.isScanning)await scanner.stop();await scanner.clear();}catch{}scanner=null;}
+    if(scanner){try{await scanner.stop();await scanner.clear();}catch{}scanner=null;}
     show("startScan",true);show("stopScan",false);
   }
   $("startScan").addEventListener("click",startScanner);
