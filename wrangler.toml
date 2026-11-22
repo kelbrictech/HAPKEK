@@ -1,0 +1,12 @@
+name = "hapkek-leaderboard"
+main = "worker/index.js"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hapkek-leaderboard"
+# Verified against Cloudflare D1 account resources on 22 November 2026.
+database_id = "306d1d2d-f0c6-4dc8-8c77-3744f46cade9"
+
+# Set this to the exact HTTPS origin where staff-app/ is hosted, e.g. https://staff.kelb... .
+# Configure the same value as Worker environment variable STAFF_APP_ORIGIN.

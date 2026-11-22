@@ -1,0 +1,20 @@
+HAPKEK RMS source package — local contract test report
+Date: 22 November 2026
+Source: extracted HAPKEK_RMS_v1_nickname_pin_build.zip
+Command: python3 <each tests/*_test.py> from HAPKEK/
+
+RESULT: 7 of 7 test scripts passed.
+
+1. tests/gameplay_contract_test.py — PASS
+   - 13 gameplay timing, input, keyboard, and score-retry contract checks.
+2. tests/leaderboard_sql_test.py — PASS
+   - Daily/weekly/all-time ranking checks; 0 failures.
+3. tests/nickname_pin_contract_test.py — PASS
+   - 12 nickname/PIN, lockout, staff-management, and recovery contract checks.
+4. tests/rms_foundation_test.py — PASS
+5. tests/staff_redemption_contract_test.py — PASS
+6. tests/voucher_launch_test.py — PASS
+7. tests/voucher_sql_test.py — PASS
+   - Voucher weights, daily caps, per-player/day uniqueness, and 90/7/2/1 stock checks.
+
+These are source/contract checks run locally (including SQLite in-memory tests). They do not establish live Cloudflare D1 compatibility, Worker deployment correctness, or browser/camera/device readiness.

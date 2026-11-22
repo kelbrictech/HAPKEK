@@ -1,0 +1,11 @@
+/* HAPKEK animations: cake flip, fades and transitions */
+.cake{transform-box:fill-box;transform-origin:center;transition:transform .15s cubic-bezier(.2,.75,.25,1)}
+.cake .letter{opacity:0;transition:opacity .12s ease;pointer-events:none;fill:#542615}
+.cake.revealed .letter{opacity:1}
+.cake.revealed{animation:pancakeReveal .15s cubic-bezier(.2,.75,.25,1)}
+@keyframes pancakeReveal{0%{transform:scaleY(1)}38%{transform:scaleY(.08)}72%{transform:scaleY(1.06)}100%{transform:scaleY(1)}}
+#cakes{opacity:1;transition:opacity .5s ease}
+#cakes.fade-away{opacity:0;pointer-events:none}
+#finalCakes{opacity:0;pointer-events:none;transition:opacity .55s ease}
+#finalCakes.show{opacity:1}
+#statusText{transition:opacity .2s ease}

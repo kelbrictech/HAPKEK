@@ -1,0 +1,45 @@
+name: HAPKEK source validation
+
+on:
+  push:
+    branches:
+      - rms/foundation-v1
+  pull_request:
+    branches:
+      - main
+      - rms/foundation-v1
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check worker/index.js
+          node --check rms/rms.js
+          node --check staff-app/staff.js
+          node --check scripts/create_staff_user.mjs
+
+      - name: Run all contract and SQL tests
+        run: |
+          set -e
+          for test_file in tests/*.py; do
+            echo "Running $test_file"
+            python "$test_file"
+          done

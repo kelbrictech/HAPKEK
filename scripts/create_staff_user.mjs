@@ -1,0 +1,43 @@
+// Usage: node scripts/create_staff_user.mjs <nickname> <display-name> [admin|staff]
+// Generates a one-time 4-digit PIN and SQL that activates or resets that staff identity.
+// Run on a trusted machine. Share the generated PIN only with its intended recipient.
+import { webcrypto } from 'node:crypto';
+
+const [username, displayName, role = "staff"] = process.argv.slice(2);
+const reservedUsernames = new Set(["webmaster", "anmer"]);
+if (reservedUsernames.has(String(username || "").trim().toLowerCase())) {
+  console.error("This nickname is reserved and cannot be provisioned by the bootstrap script.");
+  process.exit(1);
+}
+if (!username || !displayName || username.length > 20 || displayName.length > 40 ||
+    !["admin", "staff"].includes(role)) {
+  console.error("Usage: node scripts/create_staff_user.mjs <nickname> <display-name> [admin|staff]");
+  process.exit(1);
+}
+
+const randomInt = max => {
+  const range = 0x100000000;
+  const limit = Math.floor(range / max) * max;
+  const bytes = new Uint32Array(1);
+  do { webcrypto.getRandomValues(bytes); } while (bytes[0] >= limit);
+  return bytes[0] % max;
+};
+const pin = String(randomInt(10000)).padStart(4, "0");
+const salt = webcrypto.getRandomValues(new Uint8Array(16));
+const key = await webcrypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
+const bits = await webcrypto.subtle.deriveBits({name:"PBKDF2", salt, iterations:210000, hash:"SHA-256"}, key, 256);
+const hex = value => Array.from(new Uint8Array(value), b => b.toString(16).padStart(2, "0")).join("");
+const esc = value => "'" + value.replace(/'/g, "''") + "'";
+const sql = `INSERT INTO hapkek_staff_users
+(username,display_name,password_salt,password_hash,active,role,must_change_pin,failed_pin_attempts,locked_until)
+VALUES(${esc(username)},${esc(displayName)},'${hex(salt)}','${hex(bits)}',1,${esc(role)},1,0,0)
+ON CONFLICT(username) DO UPDATE SET
+display_name=excluded.display_name,password_salt=excluded.password_salt,
+password_hash=excluded.password_hash,active=1,role=excluded.role,
+must_change_pin=1,failed_pin_attempts=0,locked_until=0;
+DELETE FROM hapkek_staff_sessions
+WHERE staff_id=(SELECT id FROM hapkek_staff_users WHERE username=${esc(username)} COLLATE NOCASE);`;
+
+console.log("ONE-TIME TEMPORARY PIN (share securely): " + pin);
+console.log("\nRun this SQL against the target HAPKEK D1 database:\n");
+console.log(sql);
