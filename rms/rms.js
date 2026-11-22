@@ -17,9 +17,9 @@
     $("userName").textContent=staff.displayName||staff.nickname||"Staff";
     $("userRole").textContent=staff.role||"staff";
     show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);
+    document.body.classList.toggle("auth-landing",Boolean(staff.mustChangePin));
     if(staff.mustChangePin){show("appContent",false);return;}
     show("appContent",true);
-    document.querySelector(".layout").classList.remove("login-mode");
     const role=String(staff.role||"staff").toLowerCase();
     const canManage=["owner","admin","manager"].includes(role);
     const isWebmaster=String(staff.username||"").toLowerCase()==="webmaster"&&String(staff.role||"").toLowerCase()==="owner";
@@ -36,9 +36,9 @@
   }
   async function loadVouchers(){const params=new URLSearchParams({limit:"100",status:$("voucherStatus").value});if($("voucherDate").value)params.set("date",$("voucherDate").value);const d=await api("/api/rms/vouchers?"+params);const body=$("voucherRows");body.replaceChildren();if(!d.vouchers.length){row(body,["No matching vouchers","","","","",""]);return;}d.vouchers.forEach(v=>{const status=document.createElement("span");status.className="status"+(v.redeemed_at?" used":"");status.textContent=v.redeemed_at?"REDEEMED":"ISSUED";row(body,[v.voucher_code,v.label,v.player_id,fmt(v.created_at),status,v.redeemed_by||"—"]);});}
   async function loadAudit(){const d=await api("/api/rms/audit");const body=$("auditRows");body.replaceChildren();if(!d.events.length){row(body,["No audit events yet","","","",""]);return;}d.events.forEach(a=>{let details="";try{details=JSON.stringify(JSON.parse(a.details_json));}catch{}row(body,[fmt(a.created_at),a.display_name||a.username||"System",a.action,a.entity_type+" "+(a.entity_id||""),details]);});}
-  async function refresh(){try{if(["owner","admin","manager"].includes(currentStaff?.role)){await Promise.all([loadOverview(),loadVouchers(),loadAudit(),loadPosManagement(),...(currentStaff?.role==="admin"&&String(currentStaff?.username||"").toLowerCase()==="ana"?[loadUsers()]:[])]);}}catch(e){if(e.status===401){show("appContent",false);show("loginPanel",true);}else console.error(e);}}
+  async function refresh(){try{if(["owner","admin","manager"].includes(currentStaff?.role)){await Promise.all([loadOverview(),loadVouchers(),loadAudit(),loadPosManagement(),...(currentStaff?.role==="admin"&&String(currentStaff?.username||"").toLowerCase()==="ana"?[loadUsers()]:[])]);}}catch(e){if(e.status===401){currentStaff=null;document.body.classList.add("auth-landing");show("appContent",false);show("loginPanel",true);show("pinSetupPanel",false);}else console.error(e);}}
   function clearIssuedTemporaryPin(){const panel=$("issuedTemporaryPin"),pin=$("issuedPin"),copy=$("copyIssuedPin");if(panel)panel.hidden=true;if(pin)pin.textContent="••••";if(copy)copy.textContent="Copy PIN";}
-  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{clearIssuedTemporaryPin();document.querySelector(".layout").classList.add("login-mode");show("loginPanel",true);show("pinSetupPanel",false);show("appContent",false);show("accessPanel",false);}}
+  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{clearIssuedTemporaryPin();document.body.classList.add("auth-landing");show("loginPanel",true);show("pinSetupPanel",false);show("appContent",false);show("accessPanel",false);}}
 
   function safeResult(kind,title,message){
     const el=$("result");el.replaceChildren();el.className="scan-result "+kind;
@@ -239,7 +239,7 @@
     }catch(error){$("masterResetMessage").textContent=error.message||"Master reset failed.";}
     finally{button.disabled=false;}
   });
-  $("logout").addEventListener("click",async()=>{await stopScanner();try{await api("/api/staff/logout",{method:"POST"});}finally{clearIssuedTemporaryPin();currentStaff=null;document.querySelector(".layout").classList.add("login-mode");show("appContent",false);show("accessPanel",false);show("loginPanel",true);}});
+  $("logout").addEventListener("click",async()=>{await stopScanner();try{await api("/api/staff/logout",{method:"POST"});}finally{clearIssuedTemporaryPin();currentStaff=null;document.body.classList.add("auth-landing");show("appContent",false);show("accessPanel",false);show("pinSetupPanel",false);show("loginPanel",true);}});
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
   loadNicknames();session();
 })();
