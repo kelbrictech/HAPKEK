@@ -165,13 +165,14 @@ async function staffFromRequest(request, env) {
 }
 const staffCookie = (token, maxAge) => `hapkek_staff=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 async function staffDirectory(env) {
-  const rows = await env.DB.prepare(`SELECT username,display_name,role,active FROM hapkek_staff_users ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END, display_name COLLATE NOCASE`).all();
+  const rows = await env.DB.prepare(`SELECT username,display_name,role,active FROM hapkek_staff_users WHERE username <> 'Webmaster' COLLATE NOCASE ORDER BY CASE WHEN role='admin' THEN 0 ELSE 1 END, display_name COLLATE NOCASE`).all();
   return reply({ users:(rows.results||[]).map(u=>({nickname:u.display_name,active:Boolean(u.active),role:u.role})) });
 }
 async function staffLogin(request, env) {
   let body;
   try { body = await request.json(); } catch { return reply({ error: "Invalid request" }, 400); }
   const username = String(body?.nickname || "").trim().slice(0, 20);
+  if (username.toLowerCase() === "webmaster") return reply({ error: "This account name is not supported" }, 401);
   const pin = String(body?.pin || "");
   if (!username || !/^\d{4}$/.test(pin)) return reply({ error: "Choose your nickname and enter a 4-digit PIN" }, 400);
   const user = await env.DB.prepare(`SELECT id,username,display_name,password_salt,password_hash,role,must_change_pin,failed_pin_attempts,locked_until,active FROM hapkek_staff_users WHERE username=? COLLATE NOCASE`).bind(username).first();
@@ -242,7 +243,7 @@ async function staffRedeem(request, env, staff) {
 
 
 async function rmsUsers(env) {
-  const rows=await env.DB.prepare(`SELECT id,username,display_name,role,active,must_change_pin,locked_until FROM hapkek_staff_users ORDER BY display_name COLLATE NOCASE`).all();
+  const rows=await env.DB.prepare(`SELECT id,username,display_name,role,active,must_change_pin,locked_until FROM hapkek_staff_users WHERE username <> 'Webmaster' COLLATE NOCASE ORDER BY display_name COLLATE NOCASE`).all();
   return reply({users:(rows.results||[]).map(u=>({nickname:u.display_name,role:u.role,active:Boolean(u.active),mustChangePin:Boolean(u.must_change_pin),locked:Boolean(Number(u.locked_until||0)>Math.floor(Date.now()/1000))}))});
 }
 function generateStaffTemporaryPin() {
