@@ -13,7 +13,7 @@ if (suppliedBootstrapPin && String(username || "").toLowerCase() !== "webmaster"
   console.error("HAPKEK_BOOTSTRAP_PIN is reserved for the Webmaster bootstrap account.");
   process.exit(1);
 }
-if (suppliedBootstrapPin && !/^\\d{4}$/.test(suppliedBootstrapPin)) {
+if (suppliedBootstrapPin && !/^\d{4}$/.test(suppliedBootstrapPin)) {
   console.error("HAPKEK_BOOTSTRAP_PIN must contain exactly four digits.");
   process.exit(1);
 }
