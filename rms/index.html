@@ -9,33 +9,90 @@
   <aside class="sidebar">
     <a class="brand" href="./">HAPKEK <span>RMS</span></a>
     <div class="side-label">OPERATIONS</div>
-    <a class="nav active" href="#overview">Overview</a>
-    <a class="nav" href="#vouchers">Voucher ledger</a>
-    <a class="nav" href="#campaign">Daily campaign stock</a>
-    <a class="nav" href="#audit">Audit history</a>
-    <a class="nav" href="#users">Staff access</a>
-    <div class="side-label later-label">PLANNED MODULES</div>
-    <span class="nav disabled">Point of sale <small>Later</small></span>
-    <span class="nav disabled">Products & inventory <small>Later</small></span>
-    <span class="nav disabled">Customers & loyalty <small>Later</small></span>
-    <span class="nav disabled">Staff & shifts <small>Later</small></span>
+    <a class="nav active" href="#pos" id="posNav">Point of sale</a>
+    <a class="nav admin-nav" href="#overview">Overview</a>
+    <a class="nav admin-nav" href="#vouchers">Voucher ledger</a>
+    <a class="nav admin-nav" href="#campaign">Daily campaign stock</a>
+    <a class="nav admin-nav" href="#audit">Audit history</a>
+    <a class="nav admin-nav" href="#users">Staff access</a>
+    <div class="side-label later-label admin-nav">MANAGEMENT</div>
     <div class="sidebar-bottom"><a href="../staff-app/" class="scanner-link">Open voucher scanner ↗</a><p>HAPKEK Retail Management System</p></div>
   </aside>
   <main class="main">
     <header class="topbar"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Staff</strong><small id="userRole">Checking access</small></div><button id="logout" class="outline">Sign out</button></div></header>
     <section id="loginPanel" class="panel login-panel" hidden><h2>RMS sign in</h2><p class="muted">Use your authorized HAPKEK staff account.</p><form id="loginForm"><label>Choose your nickname<select id="nickname" required><option value="">Loading users…</option></select></label><label>4-digit PIN<input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Log in</button><p id="loginError" class="error" role="alert"></p></form></section>
-    <section id="accessPanel" class="panel" hidden><h2>RMS access required</h2><p>Your account can use the voucher scanner but does not have permission to view management reporting.</p><a href="../staff-app/">Open voucher scanner</a></section>
+    <section id="accessPanel" class="panel" hidden><h2>Access required</h2><p>This account does not have permission to use this screen.</p><a href="../staff-app/">Open voucher scanner</a></section>
+    <section id="pinSetupPanel" class="panel login-panel" hidden><h2>Set your permanent PIN</h2><p class="muted">Choose a new 4-digit PIN before using HAPKEK RMS.</p><form id="pinForm"><label>New 4-digit PIN<input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><label>Confirm new PIN<input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><button class="primary">Save permanent PIN</button><p id="pinError" class="error" role="alert"></p></form></section>
     <div id="appContent" hidden>
-      <section class="metric-grid" id="overview">
+
+      <section class="pos-screen" id="pos" aria-labelledby="posTitle">
+        <div class="pos-heading"><div><p class="eyebrow">HAPKEK / COUNTER</p><h2 id="posTitle">Point of sale</h2><p class="muted">Choose a flavor, add boxes, then collect payment.</p></div><span class="pos-open-pill"><i aria-hidden="true"></i> Ready to sell</span></div>
+        <div class="pos-layout">
+          <div class="pos-product-area">
+            <article class="pos-product-card">
+              <div class="product-art"><img src="../assets/images/final-cakes.png" alt="HAPKEK Japanese cakes"></div>
+              <div class="product-info"><span class="product-tag">15 PIECES / BOX</span><h3>HAPKEK Box</h3><p>One flavor per box</p><strong>₱150 <small>/ box</small></strong></div>
+              <fieldset class="flavor-picker"><legend>Choose flavor</legend><div class="flavor-grid">
+                <button type="button" class="flavor-option is-selected" data-flavor="bavarian" aria-pressed="true"><span class="flavor-dot bavarian-dot"></span>Bavarian</button>
+                <button type="button" class="flavor-option" data-flavor="cheese" aria-pressed="false"><span class="flavor-dot cheese-dot"></span>Cheese</button>
+                <button type="button" class="flavor-option" data-flavor="ube" aria-pressed="false"><span class="flavor-dot ube-dot"></span>Ube</button>
+                <button type="button" class="flavor-option" data-flavor="choco" aria-pressed="false"><span class="flavor-dot choco-dot"></span>Choco</button>
+                <button type="button" class="flavor-option" data-flavor="strawberry" aria-pressed="false"><span class="flavor-dot strawberry-dot"></span>Strawberry</button>
+              </div></fieldset>
+              <div class="product-quantity"><button type="button" id="productMinus" aria-label="Decrease selected flavor boxes">−</button><output id="productQty" aria-live="polite">1</output><button type="button" id="productPlus" aria-label="Increase selected flavor boxes">+</button><span>boxes</span></div>
+              <button type="button" class="add-order-btn" id="addToOrder">Add flavor to order <span id="addOrderTotal">₱150</span></button>
+            </article>
+            <div class="pos-quick-qty"><span>QUICK ADD</span><button type="button" data-quick-boxes="1">1 box</button><button type="button" data-quick-boxes="2">2 boxes</button><button type="button" data-quick-boxes="3">3 boxes</button><button type="button" data-quick-boxes="5">5 boxes</button></div>
+            <div class="pos-note"><span class="note-icon" aria-hidden="true">i</span><p>Each box contains <strong>15 pieces of one flavor</strong>. Add separate boxes to combine flavors in one order. Fixed price: <strong>₱150 per box</strong>.</p></div>
+          </div>
+          <aside class="pos-order-card" aria-labelledby="orderTitle">
+            <div class="order-heading"><div><span class="eyebrow">CURRENT SALE</span><h3 id="orderTitle">Your order</h3></div><span class="order-count" id="cartBoxCount">0 boxes</span></div>
+            <div id="emptyCart" class="empty-cart"><span class="empty-cart-icon" aria-hidden="true">＋</span><strong>Your order is empty</strong><small>Select a flavor and add a box to begin</small></div>
+            <div id="cartItems" class="cart-items" aria-live="polite"></div>
+            <div class="order-totals"><div><span>Boxes</span><strong id="orderBoxes">0</strong></div><div><span>Total pieces</span><strong id="orderPieces">0 pcs</strong></div><div class="grand-total"><span>Total due</span><strong id="orderTotal">₱0</strong></div></div>
+            <button type="button" class="checkout-btn" id="openCheckout" disabled>Continue to payment <span aria-hidden="true">→</span></button>
+            <p class="secure-caption">Every sale is saved against the signed-in cashier.</p>
+          </aside>
+        </div>
+        <section id="checkoutPanel" class="checkout-panel" hidden><form id="checkoutForm">
+          <div class="checkout-head"><div><p class="eyebrow">PAYMENT</p><h3>Complete checkout</h3></div><button type="button" id="closeCheckout" class="icon-close" aria-label="Close payment">×</button></div>
+          <div class="checkout-due"><span>Amount due</span><strong id="checkoutTotal">₱0</strong></div>
+          <fieldset class="payment-methods"><legend class="field-label">Payment method</legend><div class="payment-options">
+            <button type="button" class="payment-option selected" data-payment="cash" aria-pressed="true"><span aria-hidden="true">₱</span>Cash</button>
+            <button type="button" class="payment-option" data-payment="gcash" aria-pressed="false"><span aria-hidden="true">G</span>GCash</button>
+            <button type="button" class="payment-option" data-payment="card" aria-pressed="false"><span aria-hidden="true">▤</span>Card</button>
+          </div></fieldset>
+          <div id="cashFields" class="cash-fields"><label for="cashReceived">Cash received</label><div class="cash-input-wrap"><span>₱</span><input id="cashReceived" name="cashReceived" type="number" inputmode="numeric" min="0" step="1" placeholder="Enter amount received" autocomplete="off"></div>
+            <div class="cash-shortcuts"><button type="button" data-cash-exact="1">Exact</button><button type="button" data-cash-add="50">+₱50</button><button type="button" data-cash-add="100">+₱100</button><button type="button" data-cash-add="500">+₱500</button></div>
+            <div class="change-row"><span>Change</span><strong id="changeDue">₱0</strong></div>
+          </div>
+          <p class="payment-hint" id="paymentHint">Enter the amount received from the customer.</p>
+          <button type="submit" class="confirm-payment-btn" id="confirmPayment" disabled>Confirm cash payment · ₱0</button>
+          <p id="checkoutError" class="error" role="alert"></p>
+        </form></section>
+        <section id="receiptPanel" class="receipt-panel" hidden aria-live="polite">
+          <div class="receipt-success" aria-hidden="true">✓</div><h3>Sale recorded</h3><p class="receipt-subtitle">Receipt saved successfully.</p><div id="receiptDetails" class="receipt-paper"></div>
+          <div class="receipt-actions"><button type="button" id="printReceipt" class="outline">Print receipt</button><button type="button" id="newSale" class="primary">New sale</button></div>
+        </section>
+        <section class="pos-management admin-only" id="posManagement" hidden>
+          <div class="pos-management-head"><div><p class="eyebrow">PHILIPPINE BUSINESS DATE</p><h3>Sales today</h3></div><span class="muted" id="posBusinessDate">—</span></div>
+          <div class="pos-stats"><article><span>Gross sales</span><strong id="posGross">₱0</strong></article><article><span>Boxes sold</span><strong id="posBoxes">0</strong></article><article><span>Orders</span><strong id="posOrders">0</strong></article><article><span>Pieces sold</span><strong id="posPieces">0</strong></article></div>
+          <div class="flavor-summary" id="posFlavorSummary"></div>
+          <div class="recent-sales-head"><h4>Recent transactions</h4><button type="button" id="refreshPos" class="outline">Refresh</button></div>
+          <div class="recent-sales-list" id="recentSales"><p class="muted">No sales recorded yet.</p></div>
+        </section>
+      </section>
+
+      <section class="metric-grid admin-only" id="overview">
         <article class="metric"><span>Game plays today</span><strong id="plays">—</strong><small>Completed leaderboard submissions</small></article>
         <article class="metric"><span>Vouchers issued</span><strong id="issued">—</strong><small>Today's Philippine date</small></article>
         <article class="metric"><span>Vouchers redeemed</span><strong id="redeemed">—</strong><small>Confirmed store redemptions</small></article>
         <article class="metric"><span>Still outstanding</span><strong id="outstanding">—</strong><small>Issued today, not yet redeemed</small></article>
       </section>
-      <section class="panel" id="campaign"><div class="section-head"><div><p class="eyebrow">PROMOTION OPERATIONS</p><h2>Daily prize inventory</h2></div><span class="pill">Asia / Manila</span></div><div class="table-wrap"><table><thead><tr><th>Prize</th><th>Daily allocation</th><th>Issued</th><th>Remaining</th><th>State</th></tr></thead><tbody id="prizeRows"><tr><td colspan="5">Loading campaign inventory…</td></tr></tbody></table></div></section>
-      <section class="panel" id="vouchers"><div class="section-head"><div><p class="eyebrow">ISSUANCE & REDEMPTION</p><h2>Voucher ledger</h2></div><div class="filters"><select id="voucherStatus"><option value="all">All vouchers</option><option value="issued">Unredeemed</option><option value="redeemed">Redeemed</option></select><input id="voucherDate" type="date"><button id="refreshVouchers" class="outline">Refresh</button></div></div><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Prize</th><th>Player ID</th><th>Issued</th><th>Status</th><th>Redeemed by</th></tr></thead><tbody id="voucherRows"><tr><td colspan="6">Loading voucher records…</td></tr></tbody></table></div></section>
-      <section class="panel" id="users" hidden><div class="section-head"><div><p class="eyebrow">ACCESS CONTROL</p><h2>Staff access</h2></div></div><form id="userAccessForm" class="filters"><label>Existing nickname<select id="staffNickname" required></select></label><label>Temporary 4-digit PIN<input id="temporaryPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Issue / reset access</button></form><p id="userAccessMessage" class="muted" role="status"></p><div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div></section><section class="panel" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
-      <footer>HAPKEK RMS · Operational data from the shared HAPKEK server</footer>
+      <section class="panel admin-only" id="campaign"><div class="section-head"><div><p class="eyebrow">PROMOTION OPERATIONS</p><h2>Daily prize inventory</h2></div><span class="pill">Asia / Manila</span></div><div class="table-wrap"><table><thead><tr><th>Prize</th><th>Daily allocation</th><th>Issued</th><th>Remaining</th><th>State</th></tr></thead><tbody id="prizeRows"><tr><td colspan="5">Loading campaign inventory…</td></tr></tbody></table></div></section>
+      <section class="panel admin-only" id="vouchers"><div class="section-head"><div><p class="eyebrow">ISSUANCE & REDEMPTION</p><h2>Voucher ledger</h2></div><div class="filters"><select id="voucherStatus"><option value="all">All vouchers</option><option value="issued">Unredeemed</option><option value="redeemed">Redeemed</option></select><input id="voucherDate" type="date"><button id="refreshVouchers" class="outline">Refresh</button></div></div><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Prize</th><th>Player ID</th><th>Issued</th><th>Status</th><th>Redeemed by</th></tr></thead><tbody id="voucherRows"><tr><td colspan="6">Loading voucher records…</td></tr></tbody></table></div></section>
+      <section class="panel admin-only" id="users" hidden><div class="section-head"><div><p class="eyebrow">ACCESS CONTROL</p><h2>Staff access</h2></div></div><form id="userAccessForm" class="filters"><label>Existing nickname<select id="staffNickname" required></select></label><label>Temporary 4-digit PIN<input id="temporaryPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Issue / reset access</button></form><p id="userAccessMessage" class="muted" role="status"></p><div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div></section><section class="panel admin-only" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
+      <footer class="admin-only">HAPKEK RMS · Operational data from the shared HAPKEK server</footer>
     </div>
   </main>
 </div>
