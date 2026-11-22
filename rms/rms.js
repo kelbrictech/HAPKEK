@@ -13,7 +13,7 @@
   function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
   async function loadNicknames(){try{const d=await api("/api/staff/users");const select=$("nickname");select.replaceChildren(new Option("Select your nickname",""));d.users.forEach(u=>select.add(new Option(u.nickname,u.nickname)));}catch{$("nickname").replaceChildren(new Option("Could not load users",""));}}
   function routeSignedIn(staff){currentStaff=staff;$("userName").textContent=staff.displayName;$("userRole").textContent=staff.role||"staff";show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);if(staff.mustChangePin){show("appContent",false);return;}show("appContent",true);const canManage=["owner","admin","manager"].includes(staff.role);document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});show("users",staff.role==="admin");show("posManagement",canManage);refresh();}
-  async function loadUsers(){const d=await api("/api/rms/users");const body=$("userRows");body.replaceChildren();const select=$("staffNickname");select.replaceChildren(new Option("Select nickname",""));d.users.filter(u=>u.role!=="admin").forEach(u=>{select.add(new Option(u.nickname,u.nickname));row(body,[u.nickname,u.role,u.active?"Active":"Pending",u.mustChangePin?"Temporary PIN required":"Set"]);});}
+  async function loadUsers(){const d=await api("/api/rms/users");const body=$("userRows");body.replaceChildren();d.users.forEach(u=>row(body,[u.nickname,u.role,u.active?"Active":"Pending",u.mustChangePin?"Temporary PIN required":"Set"]));}
   async function loadOverview(){const d=await api("/api/rms/overview");$("dateLine").textContent=`Business date: ${d.date} · Philippine time`;$("plays").textContent=d.metrics.playsToday.toLocaleString();$("issued").textContent=d.metrics.vouchersIssuedToday.toLocaleString();$("redeemed").textContent=d.metrics.vouchersRedeemedToday.toLocaleString();$("outstanding").textContent=d.metrics.outstandingToday.toLocaleString();
     const body=$("prizeRows");body.replaceChildren();d.prizes.forEach(p=>{const remaining=Math.max(0,Number(p.daily_limit)-Number(p.issued_today));const state=!p.active?"Inactive":remaining===0?"Sold out":"Available";row(body,[p.label,p.daily_limit, p.issued_today,remaining,state]);});
   }
@@ -119,7 +119,25 @@
 
   $("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="";try{const d=await api("/api/staff/login",{method:"POST",body:JSON.stringify({nickname:$("nickname").value,pin:$("pin").value})});$("pin").value="";routeSignedIn(d.staff);}catch(err){$("loginError").textContent=err.message;}});
   $("pinForm").addEventListener("submit",async e=>{e.preventDefault();$("pinError").textContent="";if($("newPin").value!==$("confirmPin").value){$("pinError").textContent="PINs do not match";return;}try{await api("/api/staff/change-pin",{method:"POST",body:JSON.stringify({pin:$("newPin").value})});$("newPin").value=$("confirmPin").value="";await session();}catch(err){$("pinError").textContent=err.message;}});
-  $("userAccessForm").addEventListener("submit",async e=>{e.preventDefault();$("userAccessMessage").textContent="";try{const d=await api("/api/rms/users/temporary-pin",{method:"POST",body:JSON.stringify({nickname:$("staffNickname").value,temporaryPin:$("temporaryPin").value})});$("temporaryPin").value="";$("userAccessMessage").textContent=`Temporary access issued for ${d.nickname}. Give the PIN to the staff member securely.`;await loadUsers();}catch(err){$("userAccessMessage").textContent=err.message;}});
+  $("userAccessForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    $("userAccessMessage").textContent="";
+    $("issuedTemporaryPin").hidden=true;
+    $("issuedPin").textContent="••••";
+    $("issueAnmerPin").disabled=true;
+    try{
+      const d=await api("/api/rms/users/temporary-pin",{method:"POST",body:JSON.stringify({nickname:"Anmer"})});
+      $("issuedPin").textContent=d.temporaryPin;
+      $("issuedTemporaryPin").hidden=false;
+      $("userAccessMessage").textContent="Anmer's temporary PIN has been generated. Only Ana can see it here; pass it directly to him.";
+      await loadUsers();
+    }catch(err){$("userAccessMessage").textContent=err.message;}
+    finally{$("issueAnmerPin").disabled=false;}
+  });
+  $("copyIssuedPin").addEventListener("click",async()=>{
+    const pin=$("issuedPin").textContent;
+    try{await navigator.clipboard.writeText(pin);$("copyIssuedPin").textContent="Copied";}catch{$("copyIssuedPin").textContent="Select PIN to copy";}
+  });
   $("logout").addEventListener("click",async()=>{try{await api("/api/staff/logout",{method:"POST"});}finally{currentStaff=null;show("appContent",false);show("accessPanel",false);show("loginPanel",true);}});
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
   loadNicknames();session();
