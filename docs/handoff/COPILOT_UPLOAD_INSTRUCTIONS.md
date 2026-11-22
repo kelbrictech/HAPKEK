@@ -41,7 +41,7 @@ The repository already has live-leaderboard infrastructure. Do not treat this so
 
 ## Security and configuration cautions
 - Never commit real passwords, PINs, Worker secrets, API tokens, Cloudflare credentials, or `.dev.vars` files.
-- `README.md` documents the initial Ana temporary PIN as `8888`; migration `0005_nickname_pin_access.sql` stores the corresponding PBKDF2 hash. Treat this as a known bootstrap credential, not a production secret. Do not deploy or expose a live login using this default. Before any production release, replace this bootstrap method with a securely provisioned, one-time administrator PIN and require immediate change. The `WEBMASTER_RECOVERY_TOKEN` must be configured as a Worker secret, never placed in browser code or Git.
+- Migration `0005_nickname_pin_access.sql` seeds Ana and Anmer as disabled identities with no usable default PIN. Provision Ana with `node scripts/create_staff_user.mjs Ana Ana admin`, deliver the generated one-time PIN securely, execute the SQL against the intended D1 database, and require immediate PIN change. Never publish a default or shared PIN. The `WEBMASTER_RECOVERY_TOKEN` must be configured as a Worker secret, never placed in browser code or Git.
 - The public staff/RMS routes must remain protected by server-side role checks and session validation. Do not rely on hiding UI controls as authorization.
 - Keep `staff-app/` and `rms/` as source assets only. Do not publish, link, or deploy a staff login during this commit task.
 
