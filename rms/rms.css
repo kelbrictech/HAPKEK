@@ -709,3 +709,10 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
   .add-order-btn{min-height:45px!important}
   .pos-quick-qty button{min-height:33px}
 }
+
+/* Keep the cart footer available on wider counter screens too. */
+.mobile-cart-footer{display:grid;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e3d3c0}
+@media(min-width:681px){
+  .mobile-cart-footer{grid-template-columns:1fr}
+  .mobile-cart-footer .order-totals{display:grid}
+}
