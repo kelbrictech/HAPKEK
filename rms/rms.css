@@ -290,3 +290,5 @@ body.auth-landing #mainHeader{display:none!important}
 .pin-reveal{flex:0 0 64px;margin:0!important;padding:0 10px;min-height:48px;border:1px solid #d8cabc;border-radius:9px;background:#f8f1e9;color:#6b3025;font:700 13px inherit;cursor:pointer}
 .pin-reveal:focus-visible{outline:3px solid #8d382b;outline-offset:2px}
 .pin-input input[aria-invalid="true"]{border-color:#b42318;outline-color:#b42318}
+
+.pin-reveal svg{display:block;width:20px;height:20px;margin:auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
