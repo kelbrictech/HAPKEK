@@ -81,6 +81,28 @@ checks = {
         and "password_hash" in webmaster_bootstrap,
 }
 
+webmaster_bootstrap_route = worker[worker.index('url.pathname === "/api/webmaster/bootstrap"'):worker.index('url.pathname === "/api/webmaster/recovery/temporary-pin"')]
+setup_page = (ROOT / "rms" / "webmaster-setup.html").read_text()
+
+checks.update({
+    "first-run Webmaster bootstrap is protected by a separate one-time token":
+        'env.WEBMASTER_BOOTSTRAP_TOKEN' in webmaster_bootstrap_route
+        and 'if(!secret || !supplied || authDiff!==0)' in webmaster_bootstrap_route,
+    "first-run bootstrap refuses to overwrite an existing Webmaster":
+        "SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE" in webmaster_bootstrap_route
+        and "if(existing) return reply" in webmaster_bootstrap_route,
+    "first-run bootstrap hashes the temporary PIN and forces replacement":
+        "iterations:210000" in webmaster_bootstrap_route
+        and "must_change_pin,failed_pin_attempts,locked_until" in webmaster_bootstrap_route
+        and "1,'owner',1,0,0" in webmaster_bootstrap_route,
+    "setup page reads token from URL fragment and removes it from browser history":
+        'location.hash' in setup_page and 'history.replaceState' in setup_page,
+    "setup page posts temporary PIN only to the protected API":
+        '"/api/webmaster/bootstrap"' in setup_page
+        and 'Authorization":"Bearer "+token' in setup_page
+        and 'JSON.stringify({temporaryPin:pin.value})' in setup_page,
+})
+
 for label, ok in checks.items():
     print(("PASS " if ok else "FAIL ") + label)
 if not all(checks.values()):
