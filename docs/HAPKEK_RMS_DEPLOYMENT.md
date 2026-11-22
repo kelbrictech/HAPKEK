@@ -15,26 +15,8 @@ The Pages build command copies the RMS and staff app static files into the Pages
 
 Initial staff provisioning is a separate secure operation: Ana's account receives a one-time PIN; Ana changes it at first login, then issues Anmer's temporary PIN from the RMS staff access screen. Do not place either PIN in repository files or chat logs.
 
-## Webmaster first-run activation
+## Admin and staff access
 
-The first-run setup page is available at `https://rms.kelbric.com/webmaster-setup/`. It requires the one-time activation token supplied separately and the four-digit temporary PIN. The page sends the token in the Authorization header, strips it from the browser URL fragment after loading, and the API only provisions the account if no Webmaster identity exists. After activation, sign in at the RMS dashboard and replace the temporary PIN immediately.
+The RMS supports exactly two roles: `admin` and `staff`. Ana is the seeded administrator; Anmer is the seeded staff identity. Provision Ana through the trusted-machine staff provisioning workflow. Ana issues Anmer a temporary PIN from the authenticated RMS Staff access screen. Both users must replace their temporary PIN at first sign-in.
 
-## Webmaster controls
-
-The RMS contains a Webmaster-only control panel. It is available only when the authenticated user is username `Webmaster` with role `owner`.
-
-Provision the initial Webmaster account from a trusted machine with Node.js and Wrangler authenticated to the `kelbrictech` Cloudflare account:
-
-```powershell
-$env:HAPKEK_BOOTSTRAP_PIN = "<your four-digit temporary PIN>"
-node scripts/provision_webmaster.mjs
-Remove-Item Env:HAPKEK_BOOTSTRAP_PIN
-```
-
-The script hashes the PIN with PBKDF2-SHA256 (210,000 iterations), provisions the account in the configured remote D1 database, and requires a PIN change at first login. The PIN is never committed to the repository or printed by the dedicated bootstrap script.
-
-Webmaster controls:
-- **Export current state** downloads JSON operational data (scores, prize inventory, vouchers, staff status, POS transactions and audit events). It deliberately excludes PIN hashes, PIN salts, sessions and API secrets.
-- **Master Reset Staff Access** requires typing `RESET STAFF ACCESS`. It disables all non-Webmaster staff identities, revokes their sessions, and records an audit event. It does not delete scores, voucher claims, redemptions, sales, sale items, prize stock or audit history.
-
-The SQL savepoint created on 22 November 2026 is a separate pre-Webmaster backup. Restore it only into a separate or empty D1 database, never over a live database without an explicit recovery plan.
+There is no Webmaster setup, recovery, export, master-reset, or bootstrap route. Existing operational records are preserved. Apply migration `0007_admin_staff_only.sql` to the intended D1 database before deploying the updated Worker. Review the migration and recovery plan before applying it to production.
