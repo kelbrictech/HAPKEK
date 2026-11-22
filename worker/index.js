@@ -180,10 +180,9 @@ async function staffLogin(request, env) {
   if (user && Number(user.locked_until||0)>now) return reply({error:"Account temporarily locked. Ask Ana to reset your access."},423);
   const salt = user?.password_salt || "00112233445566778899aabbccddeeff";
   const hash = user?.password_hash || "00".repeat(32);
-  const bootstrapPinValid = Boolean(user && Number(user.must_change_pin) &&
-    ((String(user.username).toLowerCase()==="ana" && pin==="8888") ||
-     (String(user.username).toLowerCase()==="anmer" && pin==="6789")));
-  const valid = bootstrapPinValid || await verifyStaffPassword(pin, salt, hash);
+  // All accounts authenticate exclusively against their PBKDF2 hash.
+  // Temporary credentials are provisioned as hashes; no hardcoded PIN bypasses.
+  const valid = await verifyStaffPassword(pin, salt, hash);
   if (!user || !user.active || !valid) {
     if (user && user.active) {
       const attempts=Number(user.failed_pin_attempts||0)+1;
