@@ -509,7 +509,7 @@ export default {
     if (staffPath && origin && origin !== staffOrigin) return reply({error:"Origin not allowed"},403);
     if (url.pathname === "/api/webmaster/bootstrap" && request.method === "POST") {
       const secret=env.WEBMASTER_BOOTSTRAP_TOKEN||"";
-      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
+      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
       const suppliedHash=await sha256Hex(supplied), expectedHash=await sha256Hex(secret);
       let authDiff=suppliedHash.length^expectedHash.length;
       for(let i=0;i<Math.min(suppliedHash.length,expectedHash.length);i++) authDiff|=suppliedHash.charCodeAt(i)^expectedHash.charCodeAt(i);
