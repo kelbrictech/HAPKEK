@@ -15,6 +15,10 @@ The Pages build command copies the RMS and staff app static files into the Pages
 
 Initial staff provisioning is a separate secure operation: Ana's account receives a one-time PIN; Ana changes it at first login, then issues Anmer's temporary PIN from the RMS staff access screen. Do not place either PIN in repository files or chat logs.
 
+## Webmaster first-run activation
+
+The first-run setup page is available at `https://rms.kelbric.com/webmaster-setup/`. It requires the one-time activation token supplied separately and the four-digit temporary PIN. The page sends the token in the Authorization header, strips it from the browser URL fragment after loading, and the API only provisions the account if no Webmaster identity exists. After activation, sign in at the RMS dashboard and replace the temporary PIN immediately.
+
 ## Webmaster controls
 
 The RMS contains a Webmaster-only control panel. It is available only when the authenticated user is username `Webmaster` with role `owner`.
