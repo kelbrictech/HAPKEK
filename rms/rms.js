@@ -127,6 +127,7 @@
     posCartRender();
   }
   function posReceipt(sale){
+    $("pos").classList.add("has-receipt");
     $("checkoutPanel").hidden=true;$("receiptPanel").hidden=false;const root=$("receiptDetails");root.replaceChildren();
     const title=document.createElement("h4");title.textContent="HAPKEK";root.append(title);
     const subtitle=document.createElement("p");subtitle.textContent="JAPANESE CAKE · SALES RECEIPT";root.append(subtitle);
@@ -150,6 +151,7 @@
     });
   }
   function posReset(){
+    $("pos").classList.remove("has-receipt");
     posFlavor="bavarian";posQty=1;posCart={};posRequestId=null;
     document.querySelectorAll("[data-flavor]").forEach(b=>{const active=b.dataset.flavor===posFlavor;b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",String(active));});
     $("cashReceived").value="";$("customerName").value="";$("orderNotes").value="";$("paymentReference").value="";$("checkoutError").textContent="";$("checkoutPanel").hidden=true;$("receiptPanel").hidden=true;posSetPayment("cash");posProductRender();posCartRender();
@@ -220,7 +222,7 @@
   // POS is a three-stage counter flow; cart and totals remain visible throughout.
   const posScreen=$("pos");
   posScreen.dataset.posStage="1";
-  const flow=document.createElement("div");flow.className="rms-flow";flow.setAttribute("aria-label","Sale progress");
+  // Keep checkout in the active POS workspace column, not below the viewport.\n  $("pos").querySelector(".pos-product-area").append($("checkoutPanel"));\n  $("overview").append($("posManagement"));\n  const flow=document.createElement("div");flow.className="rms-flow";flow.setAttribute("aria-label","Sale progress");
   flow.innerHTML='<span class="rms-flow-step active" data-flow-step="1"><b>1</b> Build order</span><i class="rms-flow-line"></i><span class="rms-flow-step" data-flow-step="2"><b>2</b> Details</span><i class="rms-flow-line"></i><span class="rms-flow-step" data-flow-step="3"><b>3</b> Payment</span>';
   $("pos").querySelector(".pos-heading").after(flow);
   const actions=document.createElement("div");actions.className="flow-actions";actions.innerHTML='<p class="flow-hint" id="flowHint">Choose flavors and add boxes to the order.</p><button type="button" class="outline" id="flowBack" hidden>Back</button><button type="button" class="primary" id="flowNext">Continue to details →</button>';
@@ -244,9 +246,6 @@
   $("openCheckout").addEventListener("click",()=>setPosStage(3));
   $("closeCheckout").addEventListener("click",()=>setPosStage(2));
   $("newSale").addEventListener("click",()=>{setPosStage(1);activateView("pos");});
-  const originalReset=posReset;
-  // Reset returns to the first stage after a completed sale.
-  $("newSale").addEventListener("click",()=>{originalReset();setPosStage(1);});
   setPosStage(1);
   session();
 })();
