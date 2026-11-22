@@ -117,10 +117,11 @@
 
   async function share() {
     let msg = progress === 6 ? `I completed the HAPKEK Memory Game in ${fmt(elapsed)}!` : 'Can you spell HAPKEK in the right order? Try the HAPKEK Memory Game!';
-    let data = { title: 'HAPKEK Japanese Cake — Memory Game', text: msg, url: location.href };
+    const shareUrl = 'https://kelbric.com/games/hapkek/';
+    let data = { title: 'HAPKEK Japanese Cake — Memory Game', text: msg, url: shareUrl };
     try {
       if (navigator.share) await navigator.share(data);
-      else if (navigator.clipboard) { await navigator.clipboard.writeText(msg + ' ' + location.href); showModal('Share link copied', '<p>Send the copied challenge link to a friend.</p>'); }
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(msg + ' ' + shareUrl); showModal('Share link copied', '<p>Send the copied challenge link to a friend.</p>'); }
       else showModal('Share HAPKEK', `<p>${msg}</p>`);
     } catch (e) { if (e.name !== 'AbortError') showModal('Sharing unavailable', '<p>Your browser does not support the share action.</p>'); }
   }
