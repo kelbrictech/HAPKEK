@@ -491,8 +491,37 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type"
     }});
     const url = new URL(request.url);
-    const staffPath = url.pathname.startsWith("/api/staff/") || url.pathname.startsWith("/api/rms/");
+    const staffPath = url.pathname.startsWith("/api/staff/") || url.pathname.startsWith("/api/rms/") || url.pathname.startsWith("/api/webmaster/");
     if (staffPath && origin && origin !== staffOrigin) return reply({error:"Origin not allowed"},403);
+    if (url.pathname === "/api/webmaster/bootstrap" && request.method === "POST") {
+      const secret=env.WEBMASTER_BOOTSTRAP_TOKEN||"";
+      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
+      const suppliedHash=await sha256Hex(supplied), expectedHash=await sha256Hex(secret);
+      let authDiff=suppliedHash.length^expectedHash.length;
+      for(let i=0;i<Math.min(suppliedHash.length,expectedHash.length);i++) authDiff|=suppliedHash.charCodeAt(i)^expectedHash.charCodeAt(i);
+      if(!secret || !supplied || authDiff!==0) {
+        const response=reply({error:"Setup link is invalid or expired"},403);
+        for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v);
+        return response;
+      }
+      let body; try{body=await request.json();}catch{return reply({error:"Invalid request"},400);}
+      const pin=String(body?.temporaryPin||"");
+      if(!/^\\d{4}$/.test(pin)) return reply({error:"Enter a 4-digit temporary PIN"},400);
+      const existing=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE").first();
+      if(existing) return reply({error:"Webmaster is already provisioned. Use the normal login or recovery process."},409);
+      const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
+      const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+      const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
+      const hash=bytesToHex(new Uint8Array(bits));
+      const inserted=await env.DB.prepare(`INSERT INTO hapkek_staff_users
+        (username,display_name,password_salt,password_hash,active,role,must_change_pin,failed_pin_attempts,locked_until)
+        VALUES('Webmaster','Webmaster',?,?,1,'owner',1,0,0)`).bind(salt,hash).run();
+      const staffId=inserted.meta?.last_row_id || null;
+      await rmsAudit(env,{id:staffId},"webmaster.provisioned","staff","Webmaster",{requiresPinChange:true});
+      const response=reply({ok:true,nickname:"Webmaster",requiresPinChange:true});
+      for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v);
+      return response;
+    }
     if (url.pathname === "/api/webmaster/recovery/temporary-pin" && request.method === "POST") {
       const secret=env.WEBMASTER_RECOVERY_TOKEN||"";
       const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
