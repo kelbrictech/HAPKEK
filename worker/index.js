@@ -326,6 +326,82 @@ async function rmsAudit(env, staff, action, entityType, entityId, details={}) {
     VALUES(?,?,?,?,?)`).bind(staff?.id||null,action,entityType,String(entityId||""),JSON.stringify(details)).run();
 }
 
+const isWebmaster = staff =>
+  String(staff?.username || "").toLowerCase() === "webmaster" &&
+  String(staff?.role || "").toLowerCase() === "owner";
+
+async function rmsWebmasterExport(env) {
+  const [scores, prizes, claims, redemptions, users, sales, saleItems, audit] = await Promise.all([
+    env.DB.prepare("SELECT * FROM hapkek_scores ORDER BY id").all(),
+    env.DB.prepare("SELECT * FROM hapkek_voucher_prizes ORDER BY prize_id").all(),
+    env.DB.prepare("SELECT * FROM hapkek_voucher_claims ORDER BY id").all(),
+    env.DB.prepare("SELECT * FROM hapkek_voucher_redemptions ORDER BY id").all(),
+    env.DB.prepare("SELECT username,display_name,role,active,must_change_pin,created_at,failed_pin_attempts,locked_until FROM hapkek_staff_users ORDER BY id").all(),
+    env.DB.prepare("SELECT * FROM hapkek_pos_sales ORDER BY id").all(),
+    env.DB.prepare("SELECT * FROM hapkek_pos_sale_items ORDER BY id").all(),
+    env.DB.prepare("SELECT id,actor_staff_id,action,entity_type,entity_id,details_json,created_at FROM hapkek_rms_audit_logs ORDER BY id").all()
+  ]);
+  const exportedAt = new Date().toISOString();
+  return reply({
+    format:"hapkek-rms-state-export",
+    version:1,
+    exportedAt,
+    timezone:"Asia/Manila",
+    data:{
+      scores:scores.results||[],
+      voucherPrizes:prizes.results||[],
+      voucherClaims:claims.results||[],
+      voucherRedemptions:redemptions.results||[],
+      staffUsers:users.results||[],
+      posSales:sales.results||[],
+      posSaleItems:saleItems.results||[],
+      auditLogs:audit.results||[]
+    },
+    security:{
+      included:"Operational records and staff account status",
+      excluded:"PIN hashes, PIN salts, authentication sessions, and API secrets"
+    }
+  },200,{
+    "Cache-Control":"no-store, private",
+    "Content-Disposition":`attachment; filename="HAPKEK_RMS_state_${exportedAt.slice(0,10)}.json"`
+  });
+}
+
+async function rmsWebmasterMasterReset(request, env, webmaster) {
+  if (!isWebmaster(webmaster)) return reply({error:"Webmaster access required"},403);
+  let body;
+  try { body=await request.json(); } catch { return reply({error:"Invalid confirmation"},400); }
+  if (body?.confirmation !== "RESET STAFF ACCESS")
+    return reply({error:"Type RESET STAFF ACCESS exactly to confirm"},400);
+
+  const before=await env.DB.prepare(
+    "SELECT COUNT(*) AS total FROM hapkek_staff_users WHERE username <> 'Webmaster' COLLATE NOCASE AND active=1"
+  ).first();
+  const token=cookieValue(request,"hapkek_staff");
+  if(!token) return reply({error:"Authentication required"},401);
+  const tokenHash=await sha256Hex(token);
+
+  await env.DB.prepare(`UPDATE hapkek_staff_users
+    SET active=0,must_change_pin=1,failed_pin_attempts=0,locked_until=0
+    WHERE username <> 'Webmaster' COLLATE NOCASE`).run();
+  const revoked=await env.DB.prepare(
+    "DELETE FROM hapkek_staff_sessions WHERE token_hash <> ?"
+  ).bind(tokenHash).run();
+
+  await rmsAudit(env,webmaster,"webmaster.master_reset","staff_access","all_non_webmaster",{
+    disabledAccounts:Number(before?.total||0),
+    revokedSessions:Number(revoked.meta?.changes||0),
+    preserved:["game scores","voucher claims","voucher redemptions","POS sales","POS sale items","audit history","voucher prize inventory"]
+  });
+  return reply({
+    ok:true,
+    disabledAccounts:Number(before?.total||0),
+    revokedSessions:Number(revoked.meta?.changes||0),
+    message:"All non-Webmaster staff accounts were disabled and their sessions revoked. Operational records were preserved."
+  });
+}
+
+
 
 const POS_UNIT_PRICE_PESOS = 150;
 const POS_PIECES_PER_BOX = 15;
@@ -468,7 +544,13 @@ export default {
       let response;
       if (!staff) response = reply({error:"Authentication required"},401);
       else if (staff.must_change_pin) response = reply({error:"Set your permanent PIN before using RMS"},403);
-      else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
+      else if (url.pathname === "/api/rms/webmaster/export" && request.method === "GET") {
+        if (!isWebmaster(staff)) response = reply({error:"Webmaster access required"},403);
+        else { try { response = await rmsWebmasterExport(env); } catch (error) { console.error("Webmaster export failed",error); response = reply({error:"Could not export current RMS state"},500); } }
+      } else if (url.pathname === "/api/rms/webmaster/master-reset" && request.method === "POST") {
+        if (!isWebmaster(staff)) response = reply({error:"Webmaster access required"},403);
+        else { try { response = await rmsWebmasterMasterReset(request,env,staff); } catch (error) { console.error("Webmaster master reset failed",error); response = reply({error:"Master reset did not complete"},500); } }
+      } else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
         try { response = await rmsPosCheckout(request,env,staff); }
         catch (error) { console.error("POS checkout error",error); response = reply({error:"Could not complete checkout"},500); }
       } else if (url.pathname === "/api/rms/pos/summary" && request.method === "GET" && RMS_READ_ROLES.has(staff.role || "staff")) {
