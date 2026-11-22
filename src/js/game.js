@@ -6,6 +6,33 @@
   const overlay = document.getElementById('modalOverlay'), modalTitle = document.getElementById('modalTitle'), modalBody = document.getElementById('modalBody');
   let order = [], progress = 0, startAt = 0, elapsed = 0, timerId = null, running = false, locked = false, selected = [], coupon = '', gameId = H.player.makeId();
   const FLIP_MS = 150;
+  const music = document.getElementById('gameMusic');
+  const musicToggle = document.getElementById('musicToggle');
+  let musicStarted = false;
+  music.volume = 0.28;
+  async function playMusic() {
+    try {
+      await music.play(); musicStarted = true;
+      musicToggle.textContent = '♫ Music: On'; musicToggle.setAttribute('aria-pressed', 'true');
+      musicToggle.setAttribute('aria-label', 'Turn background music off');
+    } catch (_) {
+      musicToggle.textContent = '♫ Tap for music';
+    }
+  }
+  function pauseMusic() {
+    music.pause(); musicToggle.textContent = '♫ Music: Off';
+    musicToggle.setAttribute('aria-pressed', 'false'); musicToggle.setAttribute('aria-label', 'Turn background music on');
+  }
+  musicToggle.addEventListener('click', () => {
+    if (!music.paused) pauseMusic(); else playMusic();
+  });
+  // Start only after a real player gesture; browsers block unsolicited autoplay.
+  document.addEventListener('pointerdown', e => {
+    if (e.target !== musicToggle && !musicStarted) playMusic();
+  }, { once: true, capture: true });
+  document.addEventListener('keydown', () => {
+    if (!musicStarted) playMusic();
+  }, { once: true, capture: true });
 
   const fmt = ms => { let t = ms / 1000, m = Math.floor(t / 60), s = Math.floor(t % 60), d = Math.floor(ms % 1000 / 100); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${d}`; };
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { let j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
