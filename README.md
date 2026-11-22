@@ -101,7 +101,7 @@ The migration both seeds these limits and updates existing prize rows, including
 
 The staff app is mobile-first and hosted over HTTPS. Login uses a seeded nickname dropdown (no free-text username) and a 4-digit PIN. The initial directory contains **Ana** (administrator) and **Anmer** (staff). Anmer is seeded as pending and cannot log in until Ana issues access.
 
-Apply migrations `0002_vouchers.sql`, `0003_staff_redemption.sql`, `0004_rms_foundation.sql`, then `0005_nickname_pin_access.sql` to the same D1 database. Migration 0005 provisions Ana with the one-time temporary PIN `8888` (stored only as a PBKDF2-SHA256 hash) and marks her to change it at first login. Ana's first login must be followed by choosing a new 4-digit PIN.
+Apply migrations `0002_vouchers.sql`, `0003_staff_redemption.sql`, `0004_rms_foundation.sql`, `0005_nickname_pin_access.sql`, and (for POS) `0006_pos_sales.sql` to the same D1 database. Migration 0005 seeds Ana and Anmer as disabled identities with no usable default PIN. Before opening staff login, run `node scripts/create_staff_user.mjs Ana Ana admin` on a trusted machine, securely deliver the generated one-time PIN to Ana, and execute the generated SQL against the same D1 database. Ana must change that PIN at first login. Do not create a shared or hard-coded default PIN.
 
 Ana's RMS dashboard includes **Staff access**. She selects an existing nickname such as Anmer and assigns a temporary 4-digit PIN. The staff member logs in with that nickname and temporary PIN, then must nominate a permanent PIN before using the scanner. Ana can reissue a temporary PIN to unlock/reset a staff member; this invalidates the staff member's previous sessions. The initial dashboard dropdown is seeded with Anmer. Additional nicknames can be provisioned as staff records through the protected RMS API when needed.
 
@@ -132,12 +132,13 @@ Apply migrations in order to the same D1 database used by the game:
 2. `0003_staff_redemption.sql`
 3. `0004_rms_foundation.sql`
 4. `0005_nickname_pin_access.sql`
+5. `0006_pos_sales.sql` (POS sales ledger)
 
-Create an owner account (use a password manager and do not share the password):
+Provision the initial administrator (run on a trusted machine):
 
-`node scripts/create_staff_user.mjs <username> <display-name> <password> owner`
+`node scripts/create_staff_user.mjs Ana Ana admin`
 
-The script prints SQL for execution against the production D1 database. Keep the generated password private. Additional staff accounts can be created with the `admin`, `manager`, or `staff` role.
+The script generates a random 4-digit one-time PIN and prints the SQL that activates the seeded Ana identity. Execute the SQL against the intended D1 database, deliver the PIN to Ana securely, and require her to change it immediately after login. The script can also create or reset staff identities with the `owner`, `admin`, `manager`, or `staff` role. Never commit the generated SQL or disclose the temporary PIN publicly.
 
 Host `rms/` and `staff-app/` over HTTPS. Configure `window.HAPKEK_RMS_API` in `rms/index.html` and `window.HAPKEK_STAFF_API` in `staff-app/index.html` to the Worker origin when hosted on a different origin. Set `STAFF_APP_ORIGIN` to the exact origin used by both apps (if they share an origin). The Worker must be deployed with the D1 binding pointing at the same database used by the game.
 
