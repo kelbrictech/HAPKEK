@@ -22,7 +22,7 @@
     document.querySelector(".layout").classList.remove("login-mode");
     const role=String(staff.role||"staff").toLowerCase();
     const canManage=["owner","admin","manager"].includes(role);
-    const isWebmaster=String(staff.username||"").toLowerCase()==="webmaster"&&role==="owner";
+    const isWebmaster=String(staff.username||"").toLowerCase()==="webmaster"&&String(staff.role||"").toLowerCase()==="owner";
     document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});
     document.querySelectorAll(".webmaster-only").forEach(el=>{el.hidden=!isWebmaster;});
     show("users",role==="admin"&&String(staff.username||"").toLowerCase()==="ana");
