@@ -618,3 +618,94 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
   .order-totals>div{font-size:10px}
   .grand-total strong{font-size:19px}
 }
+
+
+/* Reference-led mobile counter POS: flavor grid, quantity card, pinned cart/payment bar. */
+@media(max-width:680px){
+  .main{padding:0 10px 8px!important}
+  .topbar{min-height:54px!important;flex-basis:54px!important;margin-bottom:5px!important}
+  .topbar h1{font-size:18px!important}
+  .topbar .eyebrow,.topbar .muted{display:none}
+  .userbox strong{font-size:10px!important}
+  .userbox small{display:none}
+  #pos.workspace-view.is-active{gap:0}
+  .pos-heading{min-height:40px!important;margin:0 0 5px!important}
+  .pos-heading .eyebrow{font-size:9px}
+  .pos-heading h2{font-size:22px!important}
+  .pos-heading .muted{font-size:10px!important}
+  .pos-open-pill{font-size:10px!important}
+  .rms-flow{display:none!important}
+  .pos-layout{display:flex!important;flex-direction:column!important;min-height:0;gap:6px!important;overflow:hidden!important}
+  .pos-product-area{display:flex!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;padding:0!important}
+  .pos-product-card{display:flex!important;flex-direction:column;flex:1 1 auto;min-height:0;gap:0!important;padding:12px!important;border:1px solid #ead9c5;border-radius:15px;background:#fbf6ed}
+  .product-art{display:none!important}
+  .product-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+  .product-info .product-tag{order:3;margin-left:auto;font-size:10px;padding:5px 8px}
+  .product-info h3{font-size:18px!important;margin:0!important}
+  .product-info p{font-size:11px!important;margin:0!important}
+  .product-info>strong{font-size:14px!important;margin-left:auto}
+  .product-info>strong small{font-size:10px}
+  .flavor-picker{display:block;min-height:0;margin:0 0 12px!important;padding:0;border:0}
+  .flavor-picker legend{font-size:14px!important;font-weight:800;margin:0 0 8px!important}
+  .flavor-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .flavor-option,.flavor-option:last-child{display:flex;align-items:center;justify-content:flex-start;min-height:52px!important;padding:10px 12px!important;border:1px solid #e7d5c0;border-radius:28px;background:#fff;font-size:14px!important;font-weight:700;gap:9px!important}
+  .flavor-option.is-selected{border:2px solid #9a351f;background:#fff4ed;color:#51251b}
+  .flavor-dot{width:14px!important;height:14px!important;flex:none}
+  .product-quantity{display:flex;align-items:center;gap:10px;margin:0 0 9px!important;padding:10px 12px;border:1px solid #ead9c5;border-radius:12px;background:#fff}
+  .product-quantity button{width:48px!important;height:44px!important;min-width:48px!important;border:0;border-radius:9px;background:#34363e;color:white;font-size:25px!important;font-weight:700}
+  .product-quantity output{font-size:19px!important;font-weight:800;min-width:20px}
+  .product-quantity>span{font-size:12px!important}
+  .add-order-btn{min-height:50px!important;border-radius:28px!important;font-size:14px!important;font-weight:800;padding:10px 16px!important}
+  .add-order-btn span{font-size:14px!important}
+  .pos-quick-qty{display:flex!important;align-items:center;gap:6px;flex:none;margin:0;padding:2px 0 0;overflow:hidden}
+  .pos-quick-qty>span{font-size:10px!important;white-space:nowrap}
+  .pos-quick-qty button{flex:1;min-width:0;min-height:38px;padding:6px 4px;border:1px solid #e7d5c0;border-radius:22px;background:#fff;font-size:11px;font-weight:700}
+  .pos-note,.order-details-fields{display:none!important}
+  .pos-order-card{position:relative!important;inset:auto!important;flex:0 0 auto!important;width:100%;max-height:none!important;min-height:0!important;margin:0!important;padding:9px 10px 10px!important;border:1px solid #e4d2bd;border-radius:16px 16px 12px 12px;background:#f7efe2;box-shadow:0 -5px 18px #43271912;overflow:visible!important}
+  .order-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0!important}
+  .order-heading .eyebrow{font-size:9px}
+  .order-heading h3{font-size:14px!important;margin:1px 0 0}
+  .order-heading-actions{display:flex;align-items:center;gap:8px}
+  .order-count{font-size:11px!important;padding:5px 8px!important}
+  .cart-drawer-toggle{min-height:36px;padding:6px 12px;border:1px solid #e5d2bd;border-radius:22px;background:#fff;color:#7d3322;font-size:11px;font-weight:800}
+  .cart-drawer-details{max-height:28dvh;overflow:auto;padding-top:8px}
+  .cart-drawer-details[hidden]{display:none!important}
+  .empty-cart{padding:10px!important}
+  .empty-cart strong{font-size:12px!important}
+  .empty-cart small{font-size:10px!important}
+  .cart-items{max-height:17dvh;overflow:auto;margin:5px 0!important}
+  .cart-line{padding:7px 9px!important;border-radius:10px}
+  .cart-line-main strong{font-size:12px!important}
+  .cart-line-main small{font-size:10px!important}
+  .cart-line-price>strong{font-size:12px!important}
+  .cart-stepper button{width:34px!important;height:34px!important;min-width:34px!important;font-size:19px!important}
+  .mobile-cart-footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,.8fr);align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid #e3d3c0}
+  .mobile-cart-footer .order-totals{display:flex!important;align-items:center;gap:8px!important;margin:0!important;padding:0!important}
+  .mobile-cart-footer .order-totals>div:not(.grand-total){display:none}
+  .mobile-cart-footer .grand-total{display:flex;flex-direction:column;gap:0;padding:0!important;font-size:10px!important}
+  .mobile-cart-footer .grand-total span{font-size:10px!important;color:#725d4c}
+  .mobile-cart-footer .grand-total strong{font-size:21px!important;color:#8c2d1e}
+  .mobile-cart-footer .checkout-btn{min-height:48px!important;margin:0!important;padding:9px 12px!important;border-radius:28px!important;font-size:13px!important;font-weight:800}
+  .secure-caption{display:none!important}
+  .flow-actions{display:none!important}
+  /* Payment opens as a fixed sheet over the counter; the POS never scrolls to it. */
+  #checkoutPanel{position:fixed!important;z-index:150;inset:auto 0 0!important;width:100%;max-height:88dvh;overflow:auto!important;padding:18px 14px calc(18px + env(safe-area-inset-bottom))!important;border-radius:20px 20px 0 0!important;box-shadow:0 -12px 45px #21130f55;background:#fffaf4}
+  #checkoutPanel[hidden]{display:none!important}
+  #checkoutPanel .checkout-head h3{font-size:20px}
+  #checkoutPanel .checkout-due{padding:12px}
+  #checkoutPanel .checkout-due strong{font-size:24px}
+  #checkoutPanel .payment-option{min-height:48px;font-size:13px}
+  #checkoutPanel .cash-input-wrap input{min-height:48px;font-size:17px}
+  #checkoutPanel .confirm-payment-btn{min-height:52px;font-size:14px}
+}
+@media(max-width:680px) and (max-height:740px){
+  .pos-heading{min-height:35px!important}
+  .pos-product-card{padding:9px!important}
+  .product-info{margin-bottom:8px}
+  .flavor-picker{margin-bottom:8px!important}
+  .flavor-option,.flavor-option:last-child{min-height:45px!important}
+  .product-quantity{padding:7px 9px;margin-bottom:7px!important}
+  .product-quantity button{height:40px!important;width:44px!important;min-width:44px!important}
+  .add-order-btn{min-height:45px!important}
+  .pos-quick-qty button{min-height:33px}
+}
