@@ -310,6 +310,83 @@ async function rmsAudit(env, staff, action, entityType, entityId, details={}) {
     VALUES(?,?,?,?,?)`).bind(staff?.id||null,action,entityType,String(entityId||""),JSON.stringify(details)).run();
 }
 
+
+const POS_UNIT_PRICE_PESOS = 150;
+const POS_PIECES_PER_BOX = 15;
+const POS_MAX_BOXES = 99;
+const POS_FLAVORS = new Set(["bavarian","cheese","ube","choco","strawberry"]);
+const POS_FLAVOR_LABELS = {bavarian:"Bavarian",cheese:"Cheese",ube:"Ube",choco:"Choco",strawberry:"Strawberry"};
+const posManilaDate = () => new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
+function posReceiptNumber() {
+  const bytes=crypto.getRandomValues(new Uint8Array(4));
+  return "HAP-"+posManilaDate().replace(/-/g,"")+"-"+Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
+}
+async function posLoadSale(env,requestId,duplicate=false) {
+  const sale=await env.DB.prepare("SELECT * FROM hapkek_pos_sales WHERE client_request_id=?").bind(requestId).first();
+  if(!sale)return null;
+  const rows=await env.DB.prepare("SELECT flavor,boxes_sold AS boxes,pieces_sold AS pieces,unit_price_pesos AS unitPricePesos,line_total_pesos AS lineTotalPesos FROM hapkek_pos_sale_items WHERE sale_id=? ORDER BY flavor").bind(sale.id).all();
+  return {id:Number(sale.id),receiptNo:sale.receipt_no,boxes:Number(sale.boxes_sold),pieces:Number(sale.pieces_sold),
+    unitPricePesos:Number(sale.unit_price_pesos),totalPesos:Number(sale.total_pesos),paymentMethod:sale.payment_method,
+    amountTenderedPesos:Number(sale.amount_tendered_pesos),changeDuePesos:Number(sale.change_due_pesos),
+    cashierName:sale.cashier_name,createdAt:sale.created_at,
+    items:(rows.results||[]).map(x=>({flavor:x.flavor,flavorLabel:POS_FLAVOR_LABELS[x.flavor],boxes:Number(x.boxes),pieces:Number(x.pieces),unitPricePesos:Number(x.unitPricePesos),lineTotalPesos:Number(x.lineTotalPesos)})),
+    duplicate};
+}
+async function rmsPosCheckout(request,env,staff) {
+  let body;try{body=await request.json();}catch{return reply({error:"Invalid checkout request"},400);}
+  const requestId=String(body?.requestId||""),paymentMethod=String(body?.paymentMethod||"cash").toLowerCase();
+  if(!/^[A-Za-z0-9_-]{16,80}$/.test(requestId))return reply({error:"A valid checkout request ID is required"},400);
+  if(!["cash","gcash","card"].includes(paymentMethod))return reply({error:"Choose cash, GCash, or card"},400);
+  if(!Array.isArray(body?.items)||body.items.length<1||body.items.length>5)return reply({error:"Choose at least one flavor"},400);
+  const seen=new Set(),items=[];let boxes=0;
+  for(const item of body.items){
+    const flavor=String(item?.flavor||"").toLowerCase(),count=Number(item?.boxes);
+    if(!POS_FLAVORS.has(flavor)||seen.has(flavor)||!Number.isInteger(count)||count<1||count>POS_MAX_BOXES)
+      return reply({error:"Invalid flavor or box quantity"},400);
+    seen.add(flavor);boxes+=count;
+    items.push({flavor,boxes:count,pieces:count*POS_PIECES_PER_BOX,lineTotal:count*POS_UNIT_PRICE_PESOS});
+  }
+  if(boxes<1||boxes>POS_MAX_BOXES)return reply({error:"An order can contain between 1 and 99 boxes"},400);
+  const total=boxes*POS_UNIT_PRICE_PESOS;
+  const tendered=paymentMethod==="cash"?Number(body?.amountTenderedPesos):total;
+  if(!Number.isSafeInteger(tendered)||tendered<total)return reply({error:"Cash received must be a whole peso amount at least equal to the total"},400);
+  const duplicate=await posLoadSale(env,requestId,true);
+  if(duplicate)return reply({ok:true,sale:duplicate},200);
+  const receiptNo=posReceiptNumber(),createdAt=new Date().toISOString();
+  const statements=[env.DB.prepare("INSERT INTO hapkek_pos_sales (receipt_no,client_request_id,boxes_sold,pieces_sold,unit_price_pesos,total_pesos,payment_method,amount_tendered_pesos,change_due_pesos,cashier_staff_id,cashier_name,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(receiptNo,requestId,boxes,boxes*POS_PIECES_PER_BOX,POS_UNIT_PRICE_PESOS,total,paymentMethod,tendered,tendered-total,staff.id,staff.display_name,createdAt)];
+  for(const item of items)statements.push(env.DB.prepare("INSERT INTO hapkek_pos_sale_items (sale_id,flavor,boxes_sold,pieces_sold,unit_price_pesos,line_total_pesos) SELECT id,?,?,?,?,? FROM hapkek_pos_sales WHERE client_request_id=?")
+    .bind(item.flavor,item.boxes,item.pieces,POS_UNIT_PRICE_PESOS,item.lineTotal,requestId));
+  try{await env.DB.batch(statements);}catch(error){
+    const retry=await posLoadSale(env,requestId,true);if(retry)return reply({ok:true,sale:retry},200);
+    console.error("POS D1 batch failed",error);return reply({error:"Sale was not saved. No receipt was issued."},500);
+  }
+  const sale=await posLoadSale(env,requestId,false);
+  if(!sale)return reply({error:"Sale saved but receipt could not be loaded. Check recent sales before retrying."},500);
+  try{await rmsAudit(env,staff,"pos.sale_created","pos_sale",sale.receiptNo,{boxes:sale.boxes,pieces:sale.pieces,totalPesos:sale.totalPesos,paymentMethod,items:sale.items.map(x=>({flavor:x.flavor,boxes:x.boxes}))});}
+  catch(error){console.error("POS audit write failed",error);}
+  return reply({ok:true,sale},201);
+}
+async function rmsPosSummary(env) {
+  const row=await env.DB.prepare("SELECT COUNT(*) AS orders,COALESCE(SUM(boxes_sold),0) AS boxes,COALESCE(SUM(pieces_sold),0) AS pieces,COALESCE(SUM(total_pesos),0) AS gross_pesos FROM hapkek_pos_sales WHERE date(created_at,'+8 hours')=date('now','+8 hours')").first();
+  const flavorRows=await env.DB.prepare("SELECT i.flavor,SUM(i.boxes_sold) AS boxes,SUM(i.pieces_sold) AS pieces FROM hapkek_pos_sale_items i JOIN hapkek_pos_sales s ON s.id=i.sale_id WHERE date(s.created_at,'+8 hours')=date('now','+8 hours') GROUP BY i.flavor ORDER BY i.flavor").all();
+  return reply({timezone:"Asia/Manila",date:posManilaDate(),metrics:{orders:Number(row?.orders||0),boxes:Number(row?.boxes||0),pieces:Number(row?.pieces||0),grossPesos:Number(row?.gross_pesos||0)},
+    flavors:(flavorRows.results||[]).map(x=>({flavor:x.flavor,label:POS_FLAVOR_LABELS[x.flavor]||x.flavor,boxes:Number(x.boxes||0),pieces:Number(x.pieces||0)}))});
+}
+async function rmsPosSales(url,env) {
+  const limit=Math.min(50,Math.max(1,Number(url.searchParams.get("limit")||15)));
+  if(!Number.isInteger(limit))return reply({error:"Invalid sales limit"},400);
+  const rows=await env.DB.prepare("SELECT * FROM hapkek_pos_sales ORDER BY created_at DESC,id DESC LIMIT ?").bind(limit).all();
+  const sales=[];
+  for(const row of rows.results||[]){
+    const items=await env.DB.prepare("SELECT flavor,boxes_sold AS boxes,pieces_sold AS pieces FROM hapkek_pos_sale_items WHERE sale_id=? ORDER BY flavor").bind(row.id).all();
+    sales.push({id:Number(row.id),receiptNo:row.receipt_no,boxes:Number(row.boxes_sold),pieces:Number(row.pieces_sold),totalPesos:Number(row.total_pesos),
+      paymentMethod:row.payment_method,cashierName:row.cashier_name,createdAt:row.created_at,
+      items:(items.results||[]).map(x=>({flavor:x.flavor,label:POS_FLAVOR_LABELS[x.flavor]||x.flavor,boxes:Number(x.boxes),pieces:Number(x.pieces)}))});
+  }
+  return reply({sales});
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -375,6 +452,14 @@ export default {
       let response;
       if (!staff) response = reply({error:"Authentication required"},401);
       else if (staff.must_change_pin) response = reply({error:"Set your permanent PIN before using RMS"},403);
+      else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
+        try { response = await rmsPosCheckout(request,env,staff); }
+        catch (error) { console.error("POS checkout error",error); response = reply({error:"Could not complete checkout"},500); }
+      } else if (url.pathname === "/api/rms/pos/summary" && request.method === "GET" && RMS_READ_ROLES.has(staff.role || "staff")) {
+        try { response = await rmsPosSummary(env); } catch { response = reply({error:"Could not load POS summary"},500); }
+      } else if (url.pathname === "/api/rms/pos/sales" && request.method === "GET" && RMS_READ_ROLES.has(staff.role || "staff")) {
+        try { response = await rmsPosSales(url,env); } catch { response = reply({error:"Could not load POS sales"},500); }
+      } else if (url.pathname.startsWith("/api/rms/pos/")) response = reply({error:"Management access required"},403);
       else if (url.pathname === "/api/rms/users" && request.method === "GET" && RMS_ADMIN_ROLES.has(staff.role)) response = await rmsUsers(env);
       else if (url.pathname === "/api/rms/users/temporary-pin" && request.method === "POST" && RMS_ADMIN_ROLES.has(staff.role)) response = await rmsIssueTemporaryPin(request,env,staff);
       else if (!RMS_READ_ROLES.has(staff.role || "staff")) response = reply({error:"RMS access required"},403);
