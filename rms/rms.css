@@ -802,3 +802,15 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
   #checkoutPanel .cash-input-wrap input{min-height:48px!important;font-size:17px!important}
   #checkoutPanel .confirm-payment-btn{min-height:52px!important;font-size:14px!important}
 }
+
+@media(max-width:680px){
+  .mobile-cart-footer .cart-drawer-toggle{display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;min-height:52px!important;padding:6px 12px!important;border:0!important;border-radius:28px!important;background:#292b32!important;color:#fff!important;text-align:left!important}
+  .mobile-cart-footer .cart-drawer-toggle .grand-total span{color:#b8a89b!important}
+  .mobile-cart-footer .cart-drawer-toggle .grand-total strong{color:#c44a2c!important}
+  .mobile-cart-footer .drawer-caret{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:9px;background:#fff;color:var(--pos-rust);font-size:19px;font-weight:800}
+  .mobile-cart-footer .cart-drawer-toggle[aria-expanded="true"] .drawer-caret{transform:rotate(180deg)}
+  .mobile-cart-footer .order-totals{display:flex!important}
+  .mobile-cart-footer .grand-total{display:flex!important}
+  .mobile-cart-footer .grand-total span{font-size:10px!important}
+  .mobile-cart-footer .grand-total strong{font-size:17px!important}
+}
