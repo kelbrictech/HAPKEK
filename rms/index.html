@@ -91,7 +91,22 @@
       </section>
       <section class="panel admin-only" id="campaign"><div class="section-head"><div><p class="eyebrow">PROMOTION OPERATIONS</p><h2>Daily prize inventory</h2></div><span class="pill">Asia / Manila</span></div><div class="table-wrap"><table><thead><tr><th>Prize</th><th>Daily allocation</th><th>Issued</th><th>Remaining</th><th>State</th></tr></thead><tbody id="prizeRows"><tr><td colspan="5">Loading campaign inventory…</td></tr></tbody></table></div></section>
       <section class="panel admin-only" id="vouchers"><div class="section-head"><div><p class="eyebrow">ISSUANCE & REDEMPTION</p><h2>Voucher ledger</h2></div><div class="filters"><select id="voucherStatus"><option value="all">All vouchers</option><option value="issued">Unredeemed</option><option value="redeemed">Redeemed</option></select><input id="voucherDate" type="date"><button id="refreshVouchers" class="outline">Refresh</button></div></div><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Prize</th><th>Player ID</th><th>Issued</th><th>Status</th><th>Redeemed by</th></tr></thead><tbody id="voucherRows"><tr><td colspan="6">Loading voucher records…</td></tr></tbody></table></div></section>
-      <section class="panel admin-only" id="users" hidden><div class="section-head"><div><p class="eyebrow">ACCESS CONTROL</p><h2>Staff access</h2></div></div><form id="userAccessForm" class="filters"><label>Existing nickname<select id="staffNickname" required></select></label><label>Temporary 4-digit PIN<input id="temporaryPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Issue / reset access</button></form><p id="userAccessMessage" class="muted" role="status"></p><div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div></section><section class="panel admin-only" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
+      <section class="panel admin-only" id="users" hidden>
+        <div class="section-head"><div><p class="eyebrow">ANA-ONLY ACCESS CONTROL</p><h2>Issue Anmer's temporary PIN</h2></div></div>
+        <p class="muted">Only Ana can generate this one-time PIN. Share it directly with Anmer yourself. He must choose his own permanent 4-digit PIN the first time he signs in.</p>
+        <form id="userAccessForm" class="filters">
+          <div class="staff-target"><strong>Anmer</strong><small>Staff account · Temporary PIN required</small></div>
+          <button class="primary" id="issueAnmerPin">Generate temporary PIN for Anmer</button>
+        </form>
+        <div id="issuedTemporaryPin" class="issued-pin" hidden>
+          <span>ANMER'S TEMPORARY PIN · SHOW ONCE</span>
+          <strong id="issuedPin" aria-live="polite">••••</strong>
+          <button type="button" id="copyIssuedPin" class="outline">Copy PIN</button>
+          <p>Give this PIN directly to Anmer. Do not post it in a group chat or shared channel.</p>
+        </div>
+        <p id="userAccessMessage" class="muted" role="status"></p>
+        <div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div>
+      </section><section class="panel admin-only" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
       <footer class="admin-only">HAPKEK RMS · Operational data from the shared HAPKEK server</footer>
     </div>
   </main>
