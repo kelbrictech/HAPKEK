@@ -5,6 +5,7 @@ Production branch: `rms/foundation-v1`
 Dashboard: `https://rms.kelbric.com/`
 Staff voucher scanner: `https://rms.kelbric.com/staff-app/`
 API: `https://api.kelbric.com`
+Game build: `https://rms.kelbric.com/game/` (embedded at `https://kelbric.com/games/hapkek/`)
 
 The Pages build publishes the RMS dashboard at the site root and the staff scanner under `/staff-app/`. It does not publish the game entrypoint and does not change the existing `kelbric.com` Pages project.
 
