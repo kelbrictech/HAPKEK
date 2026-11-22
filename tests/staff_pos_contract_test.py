@@ -19,7 +19,7 @@ checks = {
     "login shell does not remain hidden after authentication": 'class="layout login-mode"' not in html and '.layout.login-mode .sidebar' not in css,
     "RMS has one login landing page": 'class="auth-landing"' in html and 'id="loginPanel"' in html and 'location.replace("/")' in legacy_entry,
     "legacy staff URL redirects to the same RMS login": 'location.replace("/")' in legacy_entry and 'id="loginForm"' not in legacy_entry,
-    "signed-in users branch by role": 'const canManage=["owner","admin","manager"].includes(role)' in js and 'el.hidden=!canManage' in js and 'el.hidden=!isWebmaster' in js,
+    "signed-in users branch by Admin and Staff role": 'const canManage=role==="admin"' in js and 'el.hidden=!canManage' in js and 'show("users",role==="admin"' in js and '"owner"' not in js and '"manager"' not in js and "isWebmaster" not in js,
     "only active accounts appear in the one login selector": 'filter(user=>user.active)' in js,
     "POS and voucher scanner share the authenticated RMS page": 'id="pos"' in html and 'id="scan"' in html and 'id="reader"' in html and 'html5-qrcode' in html,
     "voucher scanner navigation remains visible on phones": "@media(max-width:720px){.sidebar .nav{display:block" in css,
