@@ -26,6 +26,10 @@ checks = {
         'DELETE FROM hapkek_staff_sessions WHERE token_hash <> ?' in worker,
     "master reset writes an audit event":
         '"webmaster.master_reset"' in worker and '"staff_access"' in worker,
+    "recovery token targets Webmaster owner, not Ana":
+        "username='Webmaster' COLLATE NOCASE AND role='owner'" in worker
+        and 'nickname:"Webmaster"' in worker
+        and 'username=\'Ana\' COLLATE NOCASE' not in worker[worker.index('url.pathname === "/api/webmaster/recovery/temporary-pin"'):worker.index('if (url.pathname === "/api/staff/users"')],
     "master reset does not delete operational tables":
         "DELETE FROM hapkek_pos_sales" not in worker
         and "DELETE FROM hapkek_voucher_claims" not in worker
