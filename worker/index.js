@@ -140,6 +140,13 @@ async function verifyStaffPassword(password, saltHex, expectedHex) {
   for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i];
   return diff === 0;
 }
+async function generateTemporaryStaffCredential() {
+  const pin=String(randomInt(10000)).padStart(4,"0");
+  const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
+  return {pin,salt,hash:bytesToHex(new Uint8Array(bits))};
+}
 const cookieValue = (request, name) => {
   const header = request.headers.get("Cookie") || "";
   const part = header.split(";").map(x => x.trim()).find(x => x.startsWith(name + "="));
@@ -502,7 +509,7 @@ export default {
     if (staffPath && origin && origin !== staffOrigin) return reply({error:"Origin not allowed"},403);
     if (url.pathname === "/api/webmaster/bootstrap" && request.method === "POST") {
       const secret=env.WEBMASTER_BOOTSTRAP_TOKEN||"";
-      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
+      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
       const suppliedHash=await sha256Hex(supplied), expectedHash=await sha256Hex(secret);
       let authDiff=suppliedHash.length^expectedHash.length;
       for(let i=0;i<Math.min(suppliedHash.length,expectedHash.length);i++) authDiff|=suppliedHash.charCodeAt(i)^expectedHash.charCodeAt(i);
@@ -512,20 +519,41 @@ export default {
         return response;
       }
       let body; try{body=await request.json();}catch{return reply({error:"Invalid request"},400);}
-      const pin=String(body?.temporaryPin||"");
-      if(!/^\d{4}$/.test(pin)) return reply({error:"Enter a 4-digit temporary PIN"},400);
       const existing=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE").first();
-      if(existing) return reply({error:"Webmaster is already provisioned. Use the normal login or recovery process."},409);
-      const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
-      const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
-      const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
-      const hash=bytesToHex(new Uint8Array(bits));
-      const inserted=await env.DB.prepare(`INSERT INTO hapkek_staff_users
-        (username,display_name,password_salt,password_hash,active,role,must_change_pin,failed_pin_attempts,locked_until)
-        VALUES('Webmaster','Webmaster',?,?,1,'owner',1,0,0)`).bind(salt,hash).run();
-      const staffId=inserted.meta?.last_row_id || null;
-      await rmsAudit(env,{id:staffId},"webmaster.provisioned","staff","Webmaster",{requiresPinChange:true});
-      const response=reply({ok:true,nickname:"Webmaster",requiresPinChange:true});
+      if(existing) return reply({error:"Initial account setup has already been used. Sign in through RMS."},409);
+      const seeds=await env.DB.prepare("SELECT username,role FROM hapkek_staff_users WHERE username IN ('Ana','Anmer') COLLATE NOCASE").all();
+      const byName=new Map((seeds.results||[]).map(row=>[String(row.username).toLowerCase(),row]));
+      if(byName.get("ana")?.role!=="admin" || byName.get("anmer")?.role!=="staff")
+        return reply({error:"The expected Ana admin and Anmer staff seed accounts were not found. No accounts were changed."},409);
+
+      const [webmasterPin,anaPin,anmerPin]=await Promise.all([
+        generateTemporaryStaffCredential(),generateTemporaryStaffCredential(),generateTemporaryStaffCredential()
+      ]);
+      const statements=[
+        env.DB.prepare(`UPDATE hapkek_staff_users SET display_name='Ana',password_salt=?,password_hash=?,active=1,role='admin',must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE username='Ana' COLLATE NOCASE AND role='admin'`).bind(anaPin.salt,anaPin.hash),
+        env.DB.prepare(`UPDATE hapkek_staff_users SET display_name='Anmer',password_salt=?,password_hash=?,active=1,role='staff',must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE username='Anmer' COLLATE NOCASE AND role='staff'`).bind(anmerPin.salt,anmerPin.hash),
+        env.DB.prepare(`INSERT INTO hapkek_staff_users(username,display_name,password_salt,password_hash,active,role,must_change_pin,failed_pin_attempts,locked_until) VALUES('Webmaster','Webmaster',?,?,1,'owner',1,0,0)`).bind(webmasterPin.salt,webmasterPin.hash),
+        env.DB.prepare(`DELETE FROM hapkek_staff_sessions WHERE staff_id IN (SELECT id FROM hapkek_staff_users WHERE username IN ('Webmaster','Ana','Anmer') COLLATE NOCASE)`),
+        env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json) VALUES(NULL,'staff.initial_credential_issued','staff','Webmaster','{"role":"owner","active":true,"requires_pin_change":true}')`),
+        env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json) VALUES(NULL,'staff.initial_credential_issued','staff','Ana','{"role":"admin","active":true,"requires_pin_change":true}')`),
+        env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json) VALUES(NULL,'staff.initial_credential_issued','staff','Anmer','{"role":"staff","active":true,"requires_pin_change":true}')`)
+      ];
+      const results=await env.DB.batch(statements);
+      if(results[0]?.meta?.changes!==1 || results[1]?.meta?.changes!==1 || results[2]?.meta?.changes!==1)
+        return reply({error:"Initial account setup did not update exactly the three intended accounts. Contact the system administrator."},500);
+      const verified=await env.DB.prepare(`SELECT username,role,active,must_change_pin FROM hapkek_staff_users WHERE username IN ('Webmaster','Ana','Anmer') COLLATE NOCASE ORDER BY username`).all();
+      if((verified.results||[]).length!==3 || verified.results.some(row=>Number(row.active)!==1 || Number(row.must_change_pin)!==1))
+        return reply({error:"Account activation verification failed. Contact the system administrator."},500);
+      const response=reply({
+        ok:true,
+        requiresPinChange:true,
+        accounts:[
+          {nickname:"Webmaster",role:"owner",temporaryPin:webmasterPin.pin},
+          {nickname:"Ana",role:"admin",temporaryPin:anaPin.pin},
+          {nickname:"Anmer",role:"staff",temporaryPin:anmerPin.pin}
+        ],
+        message:"All three accounts are active. Each temporary PIN is valid only to reach the mandatory permanent PIN setup screen."
+      },200,{"Cache-Control":"no-store, private"});
       for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v);
       return response;
     }
