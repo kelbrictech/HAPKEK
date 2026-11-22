@@ -6,6 +6,7 @@ js = (ROOT / "rms" / "rms.js").read_text()
 worker = (ROOT / "worker" / "index.js").read_text()
 migration = (ROOT / "database" / "migrations" / "0007_pos_order_details.sql").read_text()
 legacy_entry = (ROOT / "staff-app" / "index.html").read_text()
+css = (ROOT / "rms" / "rms.css").read_text()
 
 checks = {
     "RMS has one login landing page": 'class="layout login-mode"' in html and 'id="loginPanel"' in html and 'location.replace("/")' in legacy_entry,
@@ -13,6 +14,7 @@ checks = {
     "signed-in users branch by role": 'const canManage=["owner","admin","manager"].includes(role)' in js and 'el.hidden=!canManage' in js and 'el.hidden=!isWebmaster' in js,
     "only active accounts appear in the one login selector": 'd.users.filter(u=>u.active)' in js,
     "POS and voucher scanner share the authenticated RMS page": 'id="pos"' in html and 'id="scan"' in html and 'id="reader"' in html and 'html5-qrcode' in html,
+    "voucher scanner navigation remains visible on phones": "@media(max-width:720px){.sidebar .nav{display:block" in css,
     "voucher QR and manual redemption use RMS session": '"/api/staff/redeem"' in js and 'id="manualCode"' in html and "startScanner" in js,
     "POS has all five approved flavours": all(f'data-flavor="{f}"' in html for f in ("bavarian","cheese","ube","choco","strawberry")),
     "POS records customer name and order notes": 'id="customerName"' in html and 'id="orderNotes"' in html and 'customerName:$("customerName").value.trim()' in js and 'orderNotes:$("orderNotes").value.trim()' in js,
