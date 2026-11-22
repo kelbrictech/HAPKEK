@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#321912"><title>HAPKEK RMS</title><link rel="stylesheet" href="rms.css?v=20261122-auth1">
+<meta name="theme-color" content="#321912"><title>HAPKEK RMS</title><link rel="stylesheet" href="rms.css?v=20261122-auth2">
 </head>
 <body>
 <div class="layout">
@@ -21,8 +21,8 @@
   </aside>
   <main class="main">
     <header class="topbar" id="mainHeader"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">—</strong><small id="userRole">—</small></div><button type="button" class="outline" id="logoutButton">Sign out</button></div></header>
-    <section id="loginPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">HAPKEK / STAFF ACCESS</p><h2>Sign in to RMS</h2><form id="loginForm"><label for="loginNickname">Staff account</label><select id="loginNickname"><option value="Ana">Ana · Admin</option><option value="Anmer">Anmer · Staff</option></select><label for="loginPin">4-digit PIN</label><input id="loginPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required><p id="loginError" class="error" role="alert"></p><button type="submit" class="primary">Sign in</button></form></div></section>
-    <section id="pinSetupPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">FIRST SIGN-IN REQUIRED</p><h2>Change your temporary PIN</h2><p class="muted">Set a new 4-digit PIN before proceeding to the main POS.</p><form id="pinChangeForm"><label for="newPin">New 4-digit PIN</label><input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required><label for="confirmPin">Confirm new PIN</label><input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required><p id="pinChangeError" class="error" role="alert"></p><button type="submit" class="primary">Save new PIN and continue</button></form></div></section>
+    <section id="loginPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">HAPKEK / STAFF ACCESS</p><h2>Sign in to RMS</h2><form id="loginForm"><label for="loginNickname">Staff account</label><select id="loginNickname"><option value="Ana">Ana · Admin</option><option value="Anmer">Anmer · Staff</option></select><label for="loginPin">4-digit PIN</label><div class="pin-input"><input id="loginPin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required><button class="pin-reveal" type="button" data-reveal="loginPin" aria-label="Show PIN" aria-pressed="false">Show</button></div><p id="loginError" class="error" role="alert"></p><button type="submit" class="primary">Sign in</button></form></div></section>
+    <section id="pinSetupPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">FIRST SIGN-IN REQUIRED</p><h2>Change your temporary PIN</h2><p class="muted">Set a new 4-digit PIN before proceeding to the main POS.</p><form id="pinChangeForm"><label for="newPin">New 4-digit PIN</label><div class="pin-input"><input id="newPin" name="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required><button class="pin-reveal" type="button" data-reveal="newPin" aria-label="Show PIN" aria-pressed="false">Show</button></div><label for="confirmPin">Confirm new PIN</label><div class="pin-input"><input id="confirmPin" name="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required><button class="pin-reveal" type="button" data-reveal="confirmPin" aria-label="Show PIN" aria-pressed="false">Show</button></div><p id="pinChangeError" class="error" role="alert"></p><button type="submit" class="primary">Save new PIN and continue</button></form></div></section>
     <section id="accessPanel" hidden></section>
     <div id="appContent">
 
@@ -121,5 +121,5 @@
     </div>
   </main>
 </div>
-<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261122-auth1"></script>
+<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261122-auth2"></script>
 </body></html>
