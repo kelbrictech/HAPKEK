@@ -5,11 +5,12 @@
 <meta name="theme-color" content="#321912"><title>HAPKEK RMS — Operations</title><link rel="stylesheet" href="rms.css">
 </head>
 <body>
-<div class="layout">
+<div class="layout login-mode">
   <aside class="sidebar">
     <a class="brand" href="./">HAPKEK <span>RMS</span></a>
     <div class="side-label">OPERATIONS</div>
     <a class="nav active" href="#pos" id="posNav">Point of sale</a>
+    <a class="nav scan-nav" href="#scan" id="scanNav">Voucher scanner</a>
     <a class="nav admin-nav" href="#overview">Overview</a>
     <a class="nav admin-nav" href="#vouchers">Voucher ledger</a>
     <a class="nav admin-nav" href="#campaign">Daily campaign stock</a>
@@ -17,12 +18,12 @@
     <a class="nav admin-nav" href="#users">Staff access</a>
     <a class="nav webmaster-only" href="#webmaster" hidden>Webmaster controls</a>
     <div class="side-label later-label admin-nav">MANAGEMENT</div>
-    <div class="sidebar-bottom"><a href="../staff-app/" class="scanner-link">Open voucher scanner ↗</a><p>HAPKEK Retail Management System</p></div>
+    <div class="sidebar-bottom"><p>HAPKEK Retail Management System</p></div>
   </aside>
   <main class="main">
     <header class="topbar"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Staff</strong><small id="userRole">Checking access</small></div><button id="logout" class="outline">Sign out</button></div></header>
-    <section id="loginPanel" class="panel login-panel" hidden><h2>RMS sign in</h2><p class="muted">Use your authorized HAPKEK staff account.</p><form id="loginForm"><label>Choose your nickname<select id="nickname" required><option value="">Loading users…</option></select></label><label>4-digit PIN<input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Log in</button><p id="loginError" class="error" role="alert"></p></form></section>
-    <section id="accessPanel" class="panel" hidden><h2>Access required</h2><p>This account does not have permission to use this screen.</p><a href="../staff-app/">Open voucher scanner</a></section>
+    <section id="loginPanel" class="panel login-panel"><h2>RMS sign in</h2><p class="muted">Use your authorized HAPKEK staff account.</p><form id="loginForm"><label>Choose your nickname<select id="nickname" required><option value="">Loading users…</option></select></label><label>4-digit PIN<input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Log in</button><p id="loginError" class="error" role="alert"></p></form></section>
+    <section id="accessPanel" class="panel" hidden><h2>Access required</h2><p>This account does not have permission to use this RMS workspace. Contact your RMS administrator.</p></section>
     <section id="pinSetupPanel" class="panel login-panel" hidden><h2>Set your permanent PIN</h2><p class="muted">Choose a new 4-digit PIN before using HAPKEK RMS.</p><form id="pinForm"><label>New 4-digit PIN<input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><label>Confirm new PIN<input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><button class="primary">Save permanent PIN</button><p id="pinError" class="error" role="alert"></p></form></section>
     <div id="appContent" hidden>
 
@@ -42,6 +43,11 @@
               </div></fieldset>
               <div class="product-quantity"><button type="button" id="productMinus" aria-label="Decrease selected flavor boxes">−</button><output id="productQty" aria-live="polite">1</output><button type="button" id="productPlus" aria-label="Increase selected flavor boxes">+</button><span>boxes</span></div>
               <button type="button" class="add-order-btn" id="addToOrder">Add flavor to order <span id="addOrderTotal">₱150</span></button>
+            </article>
+            <article class="panel order-details-fields">
+              <div class="section-head"><div><p class="eyebrow">ORDER DETAILS</p><h3>Customer & notes</h3></div><span class="pill">Optional</span></div>
+              <label for="customerName">Customer name</label><input id="customerName" maxlength="80" autocomplete="off" placeholder="Name for the order">
+              <label for="orderNotes">Order notes</label><textarea id="orderNotes" rows="3" maxlength="500" placeholder="Special instructions, pickup details, or notes for the kitchen"></textarea>
             </article>
             <div class="pos-quick-qty"><span>QUICK ADD</span><button type="button" data-quick-boxes="1">1 box</button><button type="button" data-quick-boxes="2">2 boxes</button><button type="button" data-quick-boxes="3">3 boxes</button><button type="button" data-quick-boxes="5">5 boxes</button></div>
             <div class="pos-note"><span class="note-icon" aria-hidden="true">i</span><p>Each box contains <strong>15 pieces of one flavor</strong>. Add separate boxes to combine flavors in one order. Fixed price: <strong>₱150 per box</strong>.</p></div>
@@ -67,6 +73,7 @@
             <div class="cash-shortcuts"><button type="button" data-cash-exact="1">Exact</button><button type="button" data-cash-add="50">+₱50</button><button type="button" data-cash-add="100">+₱100</button><button type="button" data-cash-add="500">+₱500</button></div>
             <div class="change-row"><span>Change</span><strong id="changeDue">₱0</strong></div>
           </div>
+          <div id="referenceField" hidden><label for="paymentReference">Payment reference <span class="muted">(optional)</span></label><input id="paymentReference" maxlength="100" autocomplete="off" placeholder="GCash reference or card slip number"></div>
           <p class="payment-hint" id="paymentHint">Enter the amount received from the customer.</p>
           <button type="submit" class="confirm-payment-btn" id="confirmPayment" disabled>Confirm cash payment · ₱0</button>
           <p id="checkoutError" class="error" role="alert"></p>
@@ -82,6 +89,24 @@
           <div class="recent-sales-head"><h4>Recent transactions</h4><button type="button" id="refreshPos" class="outline">Refresh</button></div>
           <div class="recent-sales-list" id="recentSales"><p class="muted">No sales recorded yet.</p></div>
         </section>
+      </section>
+
+      <section class="panel scanner-workspace" id="scan">
+        <div class="section-head"><div><p class="eyebrow">PROMOTION REDEMPTION</p><h2>Voucher scanner</h2><p class="muted">Scan a customer's QR code or enter the voucher code manually.</p></div><span class="pill">Staff access</span></div>
+        <div class="scanner-grid">
+          <article class="scanner-card">
+            <div class="section-head"><div><p class="eyebrow">CAMERA SCANNER</p><h3>Voucher QR</h3></div><span class="pill">Rear camera</span></div>
+            <div id="reader"></div>
+            <div class="scanner-actions"><button id="startScan" class="primary" type="button">Start camera</button><button id="stopScan" class="outline" type="button" hidden>Stop camera</button></div>
+            <p class="muted">Allow camera access, then center the HAPKEK voucher QR in the frame. The code is validated against the live voucher ledger.</p>
+          </article>
+          <article class="scanner-card">
+            <p class="eyebrow">NO CAMERA?</p><h3>Enter code manually</h3>
+            <label for="manualCode">Voucher code</label><input id="manualCode" placeholder="HAP-XXXXXXXXXX" autocapitalize="characters" autocomplete="off">
+            <button id="checkCode" class="primary" type="button">Validate and redeem</button>
+            <div id="result" class="scan-result" aria-live="polite" hidden></div>
+          </article>
+        </div>
       </section>
 
       <section class="metric-grid admin-only" id="overview">
@@ -134,5 +159,5 @@
     </div>
   </main>
 </div>
-<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="rms.js"></script>
+<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js"></script>
 </body></html>
