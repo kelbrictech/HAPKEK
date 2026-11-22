@@ -11,31 +11,24 @@
   function cell(text){const td=document.createElement("td");td.textContent=text==null?"—":String(text);return td;}
   function row(parent,values){const tr=document.createElement("tr");values.forEach(v=>tr.append(v instanceof Node?v:cell(v)));parent.append(tr);}
   function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
+  function showLogin(message=""){currentStaff=null;show("appContent",false);show("pinSetupPanel",false);show("loginPanel",true);document.body.classList.add("auth-landing");$("mainHeader").hidden=true;$("loginError").textContent=message;$("loginPin").value="";}
   function routeSignedIn(staff){
-    currentStaff=staff;
-    $("userName").textContent=staff.displayName||staff.nickname||"Staff";
-    $("userRole").textContent=staff.role||"staff";
-    show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);
-    document.body.classList.toggle("auth-landing",Boolean(staff.mustChangePin));
-    if(staff.mustChangePin){show("appContent",false);return;}
-    show("appContent",true);
-    const role=String(staff.role||"staff").toLowerCase();
-    const canManage=role==="admin";
-    document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});
-    show("posManagement",canManage);
-    $("dateLine").textContent="Point of sale and voucher tools · Philippine time";
-    refresh();
+    currentStaff=staff;$("mainHeader").hidden=false;$("userName").textContent=staff.displayName||staff.nickname||"Staff";$("userRole").textContent=(staff.role||"staff").toUpperCase();
+    show("loginPanel",false);show("pinSetupPanel",Boolean(staff.mustChangePin));show("accessPanel",false);document.body.classList.toggle("auth-landing",Boolean(staff.mustChangePin));
+    if(staff.mustChangePin){show("appContent",false);$("pinChangeError").textContent="";return;}
+    show("appContent",true);const canManage=String(staff.role||"staff").toLowerCase()==="admin";document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});show("posManagement",canManage);$("dateLine").textContent="Point of sale and voucher tools · Philippine time";refresh();
   }
+  $("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="";try{const d=await api("/api/staff/login",{method:"POST",body:JSON.stringify({nickname:$("loginNickname").value,pin:$("loginPin").value})});routeSignedIn(d.staff);}catch(x){$("loginError").textContent=x.message||"Sign-in failed."; }});
+  $("pinChangeForm").addEventListener("submit",async e=>{e.preventDefault();$("pinChangeError").textContent="";const p=$("newPin").value;if(!/^\\d{4}$/.test(p)){$("pinChangeError").textContent="Use exactly 4 digits.";return;}if(p!==$("confirmPin").value){$("pinChangeError").textContent="The PIN entries do not match.";return;}try{await api("/api/staff/change-pin",{method:"POST",body:JSON.stringify({pin:p})});const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch(x){$("pinChangeError").textContent=x.message||"Could not save PIN."; }});
+  $("logoutButton").addEventListener("click",async()=>{try{await api("/api/staff/logout",{method:"POST"});}catch{}showLogin();});
   async function loadOverview(){const d=await api("/api/rms/overview");$("dateLine").textContent=`Business date: ${d.date} · Philippine time`;$("plays").textContent=d.metrics.playsToday.toLocaleString();$("issued").textContent=d.metrics.vouchersIssuedToday.toLocaleString();$("redeemed").textContent=d.metrics.vouchersRedeemedToday.toLocaleString();$("outstanding").textContent=d.metrics.outstandingToday.toLocaleString();
     const body=$("prizeRows");body.replaceChildren();d.prizes.forEach(p=>{const remaining=Math.max(0,Number(p.daily_limit)-Number(p.issued_today));const state=!p.active?"Inactive":remaining===0?"Sold out":"Available";row(body,[p.label,p.daily_limit, p.issued_today,remaining,state]);});
   }
   async function loadVouchers(){const params=new URLSearchParams({limit:"100",status:$("voucherStatus").value});if($("voucherDate").value)params.set("date",$("voucherDate").value);const d=await api("/api/rms/vouchers?"+params);const body=$("voucherRows");body.replaceChildren();if(!d.vouchers.length){row(body,["No matching vouchers","","","","",""]);return;}d.vouchers.forEach(v=>{const status=document.createElement("span");status.className="status"+(v.redeemed_at?" used":"");status.textContent=v.redeemed_at?"REDEEMED":"ISSUED";row(body,[v.voucher_code,v.label,v.player_id,fmt(v.created_at),status,v.redeemed_by||"—"]);});}
   async function loadAudit(){const d=await api("/api/rms/audit");const body=$("auditRows");body.replaceChildren();if(!d.events.length){row(body,["No audit events yet","","","",""]);return;}d.events.forEach(a=>{let details="";try{details=JSON.stringify(JSON.parse(a.details_json));}catch{}row(body,[fmt(a.created_at),a.display_name||a.username||"System",a.action,a.entity_type+" "+(a.entity_id||""),details]);});}
-  async function refresh(){try{if(["admin"].includes(currentStaff?.role)){await Promise.all([loadOverview(),loadVouchers(),loadAudit(),loadPosManagement(),...(currentStaff?.role==="admin"&&String(currentStaff?.username||"").toLowerCase()==="ana"?[loadUsers()]:[])]);}}catch(e){if(e.status===401){currentStaff=null;document.body.classList.add("auth-landing");show("appContent",false);show("loginPanel",true);show("pinSetupPanel",false);}else console.error(e);}}
+  async function refresh(){try{if(currentStaff?.role==="admin")await Promise.all([loadOverview(),loadVouchers(),loadAudit(),loadPosManagement()]);}catch(e){if(e.status===401)showLogin("Your session expired. Sign in again.");else console.error(e);}}
   function clearIssuedTemporaryPin(){const panel=$("issuedTemporaryPin"),pin=$("issuedPin"),copy=$("copyIssuedPin");if(panel)panel.hidden=true;if(pin)pin.textContent="••••";if(copy)copy.textContent="Copy PIN";}
-  async function session(){
-    routeSignedIn({username:"counter",nickname:"Counter",displayName:"Counter",role:"admin",mustChangePin:false});
-  }
+  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{showLogin();}}
 
   function safeResult(kind,title,message){
     const el=$("result");el.replaceChildren();el.className="scan-result "+kind;
