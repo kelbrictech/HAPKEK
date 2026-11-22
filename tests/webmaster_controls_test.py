@@ -86,7 +86,10 @@ setup_page = (ROOT / "rms" / "webmaster-setup.html").read_text()
 
 checks.update({
     "CORS preflight explicitly allows the bootstrap Authorization header":
-        '"Access-Control-Allow-Headers": "Content-Type, Authorization"' in worker,
+        '"Access-Control-Allow-Headers": "Content-Type, Authorization"' in worker[
+            worker.index('if (request.method === "OPTIONS")'):
+            worker.index('const url = new URL(request.url);')
+        ],
     "first-run Webmaster bootstrap is protected by a separate one-time token":
         'env.WEBMASTER_BOOTSTRAP_TOKEN' in webmaster_bootstrap_route
         and 'if(!secret || !supplied || authDiff!==0)' in webmaster_bootstrap_route,
