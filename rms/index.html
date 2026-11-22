@@ -53,12 +53,12 @@
             <div class="pos-note"><span class="note-icon" aria-hidden="true">i</span><p>Each box contains <strong>15 pieces of one flavor</strong>. Add separate boxes to combine flavors in one order. Fixed price: <strong>₱150 per box</strong>.</p></div>
           </div>
           <aside class="pos-order-card" aria-labelledby="orderTitle">
-            <div class="order-heading"><div><span class="eyebrow">CURRENT SALE</span><h3 id="orderTitle">Your order</h3></div><span class="order-count" id="cartBoxCount">0 boxes</span></div>
+            <div class="order-heading"><div><span class="eyebrow">CURRENT ORDER</span><h3 id="orderTitle">Your order</h3></div><div class="order-heading-actions"><span class="order-count" id="cartBoxCount">0 boxes</span><button type="button" id="cartDrawerToggle" class="cart-drawer-toggle" aria-expanded="false" aria-controls="cartDrawerDetails">View order</button></div></div><div id="cartDrawerDetails" class="cart-drawer-details" hidden>
             <div id="emptyCart" class="empty-cart"><span class="empty-cart-icon" aria-hidden="true">＋</span><strong>Your order is empty</strong><small>Select a flavor and add a box to begin</small></div>
             <div id="cartItems" class="cart-items" aria-live="polite"></div>
             <div class="order-totals"><div><span>Boxes</span><strong id="orderBoxes">0</strong></div><div><span>Total pieces</span><strong id="orderPieces">0 pcs</strong></div><div class="grand-total"><span>Total due</span><strong id="orderTotal">₱0</strong></div></div>
             <button type="button" class="checkout-btn" id="openCheckout" disabled>Continue to payment <span aria-hidden="true">→</span></button>
-            <p class="secure-caption">Every sale is recorded under the RMS counter.</p>
+            <p class="secure-caption">Every sale is recorded under the RMS counter.</p></div>
           </aside>
         </div>
         <section id="checkoutPanel" class="checkout-panel" hidden><form id="checkoutForm">
