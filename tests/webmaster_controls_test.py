@@ -91,6 +91,8 @@ checks.update({
     "first-run bootstrap refuses to overwrite existing initial setup":
         "SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE" in webmaster_bootstrap_route
         and "if(existing) return reply" in webmaster_bootstrap_route,
+    "bootstrap parses a standard Bearer authorization header":
+        'replace(/^Bearer\\s+/i,"")' in webmaster_bootstrap_route,
     "initial bootstrap activates Webmaster, Ana and Anmer with intended roles":
         all(name in webmaster_bootstrap_route for name in ("'Webmaster'","'Ana'","'Anmer'","'owner'","'admin'","'staff'"))
         and "active=1" in webmaster_bootstrap_route
