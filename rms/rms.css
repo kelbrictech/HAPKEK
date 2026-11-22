@@ -823,3 +823,91 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
   .mobile-cart-footer .grand-total>span{font-size:9px!important;color:#b8a89b!important}
   .mobile-cart-footer .grand-total strong{font-size:18px!important;color:#c44a2c!important}
 }
+
+
+/* HARD RULE: the mobile POS is a fixed viewport app, never a vertically scrolling page. */
+@media(max-width:680px){
+  html,body{width:100%;height:100%;min-height:0!important;overflow:hidden!important;overscroll-behavior:none!important}
+  body{position:fixed!important;inset:0!important}
+  .layout{display:flex!important;flex-direction:column!important;width:100%!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;overflow:hidden!important}
+  .sidebar{display:none!important}
+  .main{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;width:100%!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;margin:0!important;padding:0 0 env(safe-area-inset-bottom)!important;overflow:hidden!important}
+  .topbar{position:relative!important;z-index:5!important;flex:0 0 52px!important;height:52px!important;min-height:52px!important;margin:0!important;padding:6px 12px!important;overflow:hidden!important}
+  #appContent{position:relative!important;display:block!important;flex:1 1 auto!important;width:100%!important;height:calc(100dvh - 52px - env(safe-area-inset-bottom))!important;min-height:0!important;max-height:calc(100dvh - 52px - env(safe-area-inset-bottom))!important;padding:0 12px!important;overflow:hidden!important;overscroll-behavior:none!important}
+  #pos.workspace-view.is-active{display:flex!important;flex-direction:column!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;margin:0!important;padding:0!important;overflow:hidden!important}
+  #pos .pos-heading{flex:0 0 auto!important;margin:0!important;padding:7px 0 6px!important;min-height:42px!important}
+  #pos .pos-layout{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;height:auto!important;max-height:none!important;gap:5px!important;overflow:hidden!important}
+  #pos .pos-product-area{display:flex!important;flex:1 1 auto!important;min-height:0!important;height:auto!important;overflow:hidden!important}
+  #pos .pos-product-card{min-height:0!important;max-height:100%!important;overflow:hidden!important}
+  #pos .pos-order-card{flex:0 0 auto!important;position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;width:100%!important;max-height:none!important}
+  #pos .cart-drawer-details{max-height:min(34dvh,260px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+  #pos .cart-items{max-height:min(26dvh,200px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+  #pos .mobile-cart-footer{flex:0 0 auto!important}
+  #pos .pos-quick-qty{flex:0 0 auto!important}
+  #pos .pos-note,#pos .order-details-fields{display:none!important}
+
+  /* Payment is a contained full-screen state; no page or panel scrolling. */
+  #pos:has(#checkoutPanel:not([hidden])) .pos-heading,
+  #pos:has(#checkoutPanel:not([hidden])) .pos-layout,
+  #pos:has(#checkoutPanel:not([hidden])) .rms-flow,
+  #pos:has(#checkoutPanel:not([hidden])) .flow-actions{display:none!important}
+  #checkoutPanel:not([hidden]){position:absolute!important;z-index:120!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;max-height:100%!important;min-height:0!important;margin:0!important;padding:10px 12px calc(8px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;background:var(--pos-paper,#f6f1e7)!important}
+  #checkoutPanel form{display:flex!important;flex-direction:column!important;gap:6px!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;overflow:hidden!important}
+  #checkoutPanel .checkout-head{flex:0 0 38px!important;min-height:38px!important;margin:0!important}
+  #checkoutPanel .checkout-head h3{font-size:18px!important;margin:0!important}
+  #checkoutPanel .checkout-head .eyebrow{margin:0 0 2px!important;font-size:9px!important}
+  #checkoutPanel .icon-close{width:36px!important;height:36px!important;flex:none}
+  #checkoutPanel .checkout-due{display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:space-between!important;padding:9px 12px!important;margin:0!important}
+  #checkoutPanel .checkout-due strong{font-size:23px!important}
+  #checkoutPanel .payment-methods{flex:0 0 auto!important;margin:0!important;padding:0!important;border:0!important}
+  #checkoutPanel .payment-methods legend{font-size:12px!important;margin-bottom:5px!important}
+  #checkoutPanel .payment-options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:0!important}
+  #checkoutPanel .payment-option{min-height:44px!important;font-size:13px!important;border-radius:24px!important}
+  #checkoutPanel .cash-fields{display:flex!important;flex-direction:column!important;gap:6px!important;flex:0 0 auto!important;margin:0!important}
+  #checkoutPanel .cash-fields[hidden]{display:none!important}
+  #checkoutPanel .cash-fields label{font-size:12px!important;margin:0!important}
+  #checkoutPanel .cash-input-wrap input{min-height:44px!important;font-size:18px!important}
+  #checkoutPanel .cash-shortcuts{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin:0!important}
+  #checkoutPanel .cash-shortcuts button{min-width:0!important;min-height:38px!important;padding:5px 2px!important;font-size:11px!important;border-radius:22px!important}
+  #checkoutPanel .change-row{padding:7px 0!important;margin:0!important;font-size:12px!important}
+  #checkoutPanel .change-row strong{font-size:17px!important}
+  #checkoutPanel #referenceField{flex:0 0 auto!important}
+  #checkoutPanel #referenceField[hidden]{display:none!important}
+  #checkoutPanel #referenceField input{width:100%!important;min-height:44px!important}
+  #checkoutPanel .payment-hint{flex:0 0 auto!important;margin:0!important;font-size:10px!important;line-height:1.25!important}
+  #checkoutPanel .confirm-payment-btn{flex:0 0 48px!important;min-height:48px!important;margin:auto 0 0!important;font-size:14px!important}
+  #checkoutPanel .error{flex:0 0 auto!important;min-height:0!important;margin:0!important;font-size:10px!important}
+
+  /* Receipt occupies the same viewport. Compact the paper rather than scrolling it. */
+  #pos.has-receipt .pos-heading,
+  #pos.has-receipt .pos-layout,
+  #pos.has-receipt .rms-flow,
+  #pos.has-receipt .flow-actions{display:none!important}
+  #receiptPanel:not([hidden]){position:absolute!important;z-index:125!important;inset:0!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:4px!important;width:100%!important;height:100%!important;max-height:100%!important;min-height:0!important;margin:0!important;padding:9px 12px calc(8px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;background:var(--pos-paper,#f6f1e7)!important;text-align:center!important}
+  #receiptPanel .receipt-success{flex:0 0 30px!important;width:30px!important;height:30px!important;margin:0 auto!important}
+  #receiptPanel h3{flex:0 0 auto!important;margin:0!important;font-size:17px!important}
+  #receiptPanel .receipt-subtitle{flex:0 0 auto!important;margin:0!important;font-size:10px!important}
+  #receiptPanel .receipt-paper{display:block!important;flex:1 1 auto!important;width:100%!important;max-width:none!important;min-height:0!important;max-height:none!important;margin:3px 0!important;padding:8px 10px!important;overflow:hidden!important;border-radius:10px!important}
+  #receiptPanel .receipt-paper h4{font-size:16px!important}
+  #receiptPanel .receipt-paper>p{margin:2px 0!important;font-size:8px!important}
+  #receiptPanel .receipt-row{gap:6px!important;padding:3px 0!important;font-size:10px!important;line-height:1.15!important}
+  #receiptPanel .receipt-row strong{font-size:10px!important}
+  #receiptPanel .receipt-total,#receiptPanel .receipt-total strong{font-size:13px!important}
+  #receiptPanel .receipt-thanks{margin:4px 0 0!important}
+  #receiptPanel .receipt-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;flex:0 0 46px!important;width:100%!important}
+  #receiptPanel .receipt-actions button{min-height:44px!important;margin:0!important;font-size:12px!important}
+}
+@media(max-width:680px) and (max-height:700px){
+  #pos .pos-heading{min-height:36px!important;padding:4px 0!important}
+  #pos .pos-product-card{padding:7px!important}
+  #pos .product-info{margin-bottom:6px!important;padding-bottom:5px!important}
+  #pos .flavor-picker{margin-bottom:7px!important}
+  #pos .flavor-option,#pos .flavor-option:last-child{min-height:40px!important;padding:7px 10px!important}
+  #pos .product-quantity{padding:5px 8px!important;margin-bottom:6px!important}
+  #pos .product-quantity button{height:36px!important;width:38px!important;min-width:38px!important}
+  #pos .add-order-btn{min-height:40px!important;flex-basis:40px!important}
+  #pos .pos-quick-qty{margin-top:6px!important}
+  #pos .pos-quick-qty button{min-height:30px!important}
+  #checkoutPanel .cash-shortcuts button{min-height:32px!important}
+  #receiptPanel .receipt-row{padding:2px 0!important;font-size:9px!important}
+}
