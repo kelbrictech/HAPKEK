@@ -127,6 +127,7 @@
     posCartRender();
   }
   function posReceipt(sale){
+    $("pos").classList.add("has-receipt");
     $("checkoutPanel").hidden=true;$("receiptPanel").hidden=false;const root=$("receiptDetails");root.replaceChildren();
     const title=document.createElement("h4");title.textContent="HAPKEK";root.append(title);
     const subtitle=document.createElement("p");subtitle.textContent="JAPANESE CAKE · SALES RECEIPT";root.append(subtitle);
@@ -150,6 +151,7 @@
     });
   }
   function posReset(){
+    $("pos").classList.remove("has-receipt");
     posFlavor="bavarian";posQty=1;posCart={};posRequestId=null;
     document.querySelectorAll("[data-flavor]").forEach(b=>{const active=b.dataset.flavor===posFlavor;b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",String(active));});
     $("cashReceived").value="";$("customerName").value="";$("orderNotes").value="";$("paymentReference").value="";$("checkoutError").textContent="";$("checkoutPanel").hidden=true;$("receiptPanel").hidden=true;posSetPayment("cash");posProductRender();posCartRender();
@@ -184,5 +186,77 @@
   posReset();
 
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
+
+  // Top-level workspace navigation: one task surface at a time.
+  const viewTitles={pos:"Point of sale",scan:"Voucher scanner",overview:"Overview",vouchers:"Voucher ledger",campaign:"Daily campaign stock",audit:"Audit history"};
+  const viewIds=["pos","scan","overview","vouchers","campaign","audit"];
+  function activateView(id){
+    if(!viewIds.includes(id))id="pos";
+    if(["overview","vouchers","campaign","audit"].includes(id)&&currentStaff?.role!=="admin")id="pos";
+    const target=$(id);if(!target)return;
+    viewIds.forEach(view=>{const el=$(view);if(el)el.classList.toggle("is-active",view===id);});
+    document.querySelectorAll(".nav[data-view]").forEach(link=>{const active=link.dataset.view===id;link.classList.toggle("active",active);if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");});
+    $("mainHeader").querySelector("h1").textContent=viewTitles[id]||"HAPKEK RMS";
+    document.body.classList.remove("menu-open");
+    $("menuToggle").setAttribute("aria-expanded","false");
+    $("menuToggle").setAttribute("aria-label","Open navigation");
+    $("drawerBackdrop").hidden=true;
+    if(id!=="scan")stopScanner();
+    if(id==="scan"&&currentStaff){} 
+    history.replaceState(null,"","#"+id);
+  }
+  function setMenu(open){
+    document.body.classList.toggle("menu-open",open);
+    $("menuToggle").setAttribute("aria-expanded",String(open));
+    $("menuToggle").setAttribute("aria-label",open?"Close navigation":"Open navigation");
+    $("drawerBackdrop").hidden=!open;
+    if(open){const first=$("sidebar").querySelector(".nav:not([hidden])");if(first)first.focus();}
+  }
+  $("menuToggle").addEventListener("click",()=>setMenu(!document.body.classList.contains("menu-open")));
+  $("drawerBackdrop").addEventListener("click",()=>setMenu(false));
+  document.querySelectorAll(".nav[data-view]").forEach(link=>link.addEventListener("click",event=>{event.preventDefault();activateView(link.dataset.view);}));
+  document.addEventListener("keydown",event=>{
+    if(!document.body.classList.contains("menu-open"))return;
+    if(event.key==="Escape"){$("menuToggle").focus();setMenu(false);return;}
+    if(event.key==="Tab"){
+      const focusable=Array.from($("sidebar").querySelectorAll('a[href]:not([hidden]),button:not([hidden])')).filter(el=>el.offsetParent!==null);
+      if(!focusable.length)return;
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    }
+  });
+  viewIds.forEach(id=>{const el=$(id);if(el)el.classList.add("workspace-view");});
+  const initialView=location.hash.slice(1);
+  activateView(viewIds.includes(initialView)?initialView:"pos");
+
+  // POS is a three-stage counter flow; cart and totals remain visible throughout.
+  const posScreen=$("pos");
+  posScreen.dataset.posStage="1";
+  // Keep checkout in the active POS workspace column, not below the viewport.\n  $("pos").querySelector(".pos-product-area").append($("checkoutPanel"));\n  $("overview").append($("posManagement"));\n  const flow=document.createElement("div");flow.className="rms-flow";flow.setAttribute("aria-label","Sale progress");
+  flow.innerHTML='<span class="rms-flow-step active" data-flow-step="1"><b>1</b> Build order</span><i class="rms-flow-line"></i><span class="rms-flow-step" data-flow-step="2"><b>2</b> Details</span><i class="rms-flow-line"></i><span class="rms-flow-step" data-flow-step="3"><b>3</b> Payment</span>';
+  $("pos").querySelector(".pos-heading").after(flow);
+  const actions=document.createElement("div");actions.className="flow-actions";actions.innerHTML='<p class="flow-hint" id="flowHint">Choose flavors and add boxes to the order.</p><button type="button" class="outline" id="flowBack" hidden>Back</button><button type="button" class="primary" id="flowNext">Continue to details →</button>';
+  $("pos").append(actions);
+  function setPosStage(stage){
+    const next=Math.max(1,Math.min(3,stage));posScreen.dataset.posStage=String(next);
+    document.querySelectorAll("[data-flow-step]").forEach(el=>{const n=Number(el.dataset.flowStep);el.classList.toggle("active",n===next);el.classList.toggle("done",n<next);});
+    $("flowBack").hidden=next===1;
+    $("flowNext").hidden=next===3;
+    $("flowNext").textContent=next===1?"Continue to details →":"Continue to payment →";
+    $("flowHint").textContent=next===1?"Choose flavors and add boxes to the order.":next===2?"Customer name and notes are optional.":"Review the order summary, then confirm payment.";
+    if(next===3){$("checkoutPanel").hidden=false;$("receiptPanel").hidden=true;$("cashReceived").value=String(posTotal());posSetPayment(posPayment);posCartRender();}
+    else $("checkoutPanel").hidden=true;
+  }
+  $("flowNext").addEventListener("click",()=>{
+    const stage=Number(posScreen.dataset.posStage);
+    if(stage===1){if(!posBoxes()){$("flowHint").textContent="Add at least one box before continuing.";return;}setPosStage(2);}
+    else if(stage===2){setPosStage(3);}
+  });
+  $("flowBack").addEventListener("click",()=>setPosStage(Number(posScreen.dataset.posStage)-1));
+  $("openCheckout").addEventListener("click",()=>setPosStage(3));
+  $("closeCheckout").addEventListener("click",()=>setPosStage(2));
+  $("newSale").addEventListener("click",()=>{setPosStage(1);activateView("pos");});
+  setPosStage(1);
   session();
 })();
