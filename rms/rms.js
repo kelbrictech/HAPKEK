@@ -11,56 +11,6 @@
   function cell(text){const td=document.createElement("td");td.textContent=text==null?"—":String(text);return td;}
   function row(parent,values){const tr=document.createElement("tr");values.forEach(v=>tr.append(v instanceof Node?v:cell(v)));parent.append(tr);}
   function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
-  const signInFields=[$("nickname"),$("pin")];
-  const signInAnnouncer=document.createElement("div");
-  signInAnnouncer.className="visually-hidden";
-  signInAnnouncer.setAttribute("aria-live","polite");
-  document.body.append(signInAnnouncer);
-  let signInAnnouncementTimer=null;
-  function syncSignInField(field,announce=false){
-    if(!signInFields.includes(field))return;
-    const invalid=field.matches(":user-invalid");
-    const wasInvalid=field.getAttribute("aria-invalid")==="true";
-    field.setAttribute("aria-invalid",invalid?"true":"false");
-    const errorId=field.dataset.error;
-    const descriptions=(field.getAttribute("aria-describedby")||"").split(/\s+/).filter(id=>id&&id!==errorId);
-    if(invalid&&errorId)descriptions.push(errorId);
-    if(descriptions.length)field.setAttribute("aria-describedby",descriptions.join(" "));
-    else field.removeAttribute("aria-describedby");
-    if(invalid&&announce&&!wasInvalid){
-      clearTimeout(signInAnnouncementTimer);
-      signInAnnouncer.textContent="";
-      const label=field.labels?.[0]?.textContent?.trim()||"Field";
-      const message=$(errorId)?.textContent?.trim()||"Check this field.";
-      signInAnnouncementTimer=setTimeout(()=>{signInAnnouncer.textContent=label+": "+message;},500);
-    }else if(!invalid&&wasInvalid){
-      clearTimeout(signInAnnouncementTimer);
-      signInAnnouncer.textContent="";
-    }
-  }
-  signInFields.forEach(field=>field.setAttribute("aria-invalid","false"));
-  document.addEventListener("blur",event=>syncSignInField(event.target,true),true);
-  document.addEventListener("input",event=>syncSignInField(event.target),true);
-  document.addEventListener("change",event=>syncSignInField(event.target,true),true);
-  document.addEventListener("invalid",event=>syncSignInField(event.target),true);
-
-  async function loadNicknames(){
-    const select=$("nickname");
-    try{
-      const data=await api("/api/staff/users");
-      const activeUsers=(data.users||[]).filter(user=>user.active);
-      const placeholder=new Option(activeUsers.length?"Choose your staff account":"No active staff accounts","",true,true);
-      placeholder.disabled=true;
-      select.replaceChildren(placeholder);
-      activeUsers.forEach(user=>select.add(new Option(user.nickname,user.nickname)));
-      select.disabled=activeUsers.length===0;
-    }catch{
-      const placeholder=new Option("Could not load staff accounts","",true,true);
-      placeholder.disabled=true;
-      select.replaceChildren(placeholder);
-      select.disabled=true;
-    }
-  }
   function routeSignedIn(staff){
     currentStaff=staff;
     $("userName").textContent=staff.displayName||staff.nickname||"Staff";
@@ -76,7 +26,6 @@
     $("dateLine").textContent="Point of sale and voucher tools · Philippine time";
     refresh();
   }
-  async function loadUsers(){const d=await api("/api/rms/users");const body=$("userRows");body.replaceChildren();d.users.forEach(u=>row(body,[u.nickname,u.role,u.active?"Active":"Pending",u.mustChangePin?"Temporary PIN required":"Set"]));}
   async function loadOverview(){const d=await api("/api/rms/overview");$("dateLine").textContent=`Business date: ${d.date} · Philippine time`;$("plays").textContent=d.metrics.playsToday.toLocaleString();$("issued").textContent=d.metrics.vouchersIssuedToday.toLocaleString();$("redeemed").textContent=d.metrics.vouchersRedeemedToday.toLocaleString();$("outstanding").textContent=d.metrics.outstandingToday.toLocaleString();
     const body=$("prizeRows");body.replaceChildren();d.prizes.forEach(p=>{const remaining=Math.max(0,Number(p.daily_limit)-Number(p.issued_today));const state=!p.active?"Inactive":remaining===0?"Sold out":"Available";row(body,[p.label,p.daily_limit, p.issued_today,remaining,state]);});
   }
@@ -84,7 +33,9 @@
   async function loadAudit(){const d=await api("/api/rms/audit");const body=$("auditRows");body.replaceChildren();if(!d.events.length){row(body,["No audit events yet","","","",""]);return;}d.events.forEach(a=>{let details="";try{details=JSON.stringify(JSON.parse(a.details_json));}catch{}row(body,[fmt(a.created_at),a.display_name||a.username||"System",a.action,a.entity_type+" "+(a.entity_id||""),details]);});}
   async function refresh(){try{if(["admin"].includes(currentStaff?.role)){await Promise.all([loadOverview(),loadVouchers(),loadAudit(),loadPosManagement(),...(currentStaff?.role==="admin"&&String(currentStaff?.username||"").toLowerCase()==="ana"?[loadUsers()]:[])]);}}catch(e){if(e.status===401){currentStaff=null;document.body.classList.add("auth-landing");show("appContent",false);show("loginPanel",true);show("pinSetupPanel",false);}else console.error(e);}}
   function clearIssuedTemporaryPin(){const panel=$("issuedTemporaryPin"),pin=$("issuedPin"),copy=$("copyIssuedPin");if(panel)panel.hidden=true;if(pin)pin.textContent="••••";if(copy)copy.textContent="Copy PIN";}
-  async function session(){try{const d=await api("/api/staff/me");routeSignedIn(d.staff);}catch{clearIssuedTemporaryPin();document.body.classList.add("auth-landing");show("loginPanel",true);show("pinSetupPanel",false);show("appContent",false);show("accessPanel",false);}}
+  async function session(){
+    routeSignedIn({username:"counter",nickname:"Counter",displayName:"Counter",role:"admin",mustChangePin:false});
+  }
 
   function safeResult(kind,title,message){
     const el=$("result");el.replaceChildren();el.className="scan-result "+kind;
