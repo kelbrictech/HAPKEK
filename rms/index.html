@@ -15,6 +15,7 @@
     <a class="nav admin-nav" href="#campaign">Daily campaign stock</a>
     <a class="nav admin-nav" href="#audit">Audit history</a>
     <a class="nav admin-nav" href="#users">Staff access</a>
+    <a class="nav webmaster-only" href="#webmaster" hidden>Webmaster controls</a>
     <div class="side-label later-label admin-nav">MANAGEMENT</div>
     <div class="sidebar-bottom"><a href="../staff-app/" class="scanner-link">Open voucher scanner ↗</a><p>HAPKEK Retail Management System</p></div>
   </aside>
@@ -106,7 +107,29 @@
         </div>
         <p id="userAccessMessage" class="muted" role="status"></p>
         <div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div>
-      </section><section class="panel admin-only" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
+      </section>
+      <section class="panel webmaster-only" id="webmaster" hidden>
+        <div class="section-head"><div><p class="eyebrow">OWNER CONTROL</p><h2>Webmaster controls</h2></div><span class="pill">Webmaster only</span></div>
+        <div class="webmaster-actions">
+          <article class="webmaster-action-card">
+            <h3>Current-state savepoint</h3>
+            <p class="muted">Export current game scores, voucher inventory and claims, staff account status, POS sales, and audit history as a JSON file. PIN hashes, salts, sessions, and API secrets are excluded.</p>
+            <button type="button" class="outline" id="exportCurrentState">Export current state</button>
+            <p class="muted" id="exportStateMessage" role="status"></p>
+          </article>
+          <article class="webmaster-action-card reset-card">
+            <h3>Master reset</h3>
+            <p>Disables every staff account except Webmaster and revokes their active sessions. It does <strong>not</strong> delete game scores, vouchers, redemptions, POS transactions, prize stock, or audit history.</p>
+            <form id="masterResetForm">
+              <label for="masterResetConfirmation">Type <strong>RESET STAFF ACCESS</strong> to confirm</label>
+              <input id="masterResetConfirmation" autocomplete="off" spellcheck="false" required>
+              <button type="submit" class="master-reset-btn" id="masterResetButton">Master Reset Staff Access</button>
+              <p id="masterResetMessage" class="muted" role="status"></p>
+            </form>
+          </article>
+        </div>
+      </section>
+      <section class="panel admin-only" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
       <footer class="admin-only">HAPKEK RMS · Operational data from the shared HAPKEK server</footer>
     </div>
   </main>
