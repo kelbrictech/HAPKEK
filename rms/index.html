@@ -66,11 +66,12 @@
           <div class="checkout-due"><span>Amount due</span><strong id="checkoutTotal">₱0</strong></div>
           <fieldset class="payment-methods"><legend class="field-label">Payment method</legend><div class="payment-options">
             <button type="button" class="payment-option selected" data-payment="cash" aria-pressed="true"><span aria-hidden="true">₱</span>Cash</button>
-            <button type="button" class="payment-option" data-payment="gcash" aria-pressed="false"><span aria-hidden="true">G</span>GCash</button>
-            <button type="button" class="payment-option" data-payment="card" aria-pressed="false"><span aria-hidden="true">▤</span>Card</button>
+            <button type="button" class="payment-option" data-payment="gcash" aria-pressed="false"><span aria-hidden="true">G</span><span>GCash<small>E-Wallet QR</small></span></button>
+            <button type="button" class="payment-option" data-payment="maya" aria-pressed="false"><span aria-hidden="true">M</span><span>Maya<small>E-Wallet / QRPh</small></span></button>
+            <button type="button" class="payment-option" data-payment="card" aria-pressed="false"><span aria-hidden="true">▤</span><span>Card<small>Debit / Credit</small></span></button>
           </div></fieldset>
           <div id="cashFields" class="cash-fields"><label for="cashReceived">Cash received</label><div class="cash-input-wrap"><span>₱</span><input id="cashReceived" name="cashReceived" type="number" inputmode="numeric" min="0" step="1" placeholder="Enter amount received" autocomplete="off"></div>
-            <div class="cash-shortcuts"><button type="button" data-cash-exact="1">Exact</button><button type="button" data-cash-add="50">+₱50</button><button type="button" data-cash-add="100">+₱100</button><button type="button" data-cash-add="500">+₱500</button></div>
+            <div class="cash-shortcuts"><button type="button" data-cash-tender="150">₱150</button><button type="button" data-cash-tender="200">₱200</button><button type="button" data-cash-tender="500">₱500</button><button type="button" data-cash-tender="1000">₱1,000</button></div>
             <div class="change-row"><span>Change</span><strong id="changeDue">₱0</strong></div>
           </div>
           <div id="referenceField" hidden><label for="paymentReference">Payment reference <span class="muted">(optional)</span></label><input id="paymentReference" maxlength="100" autocomplete="off" placeholder="GCash reference or card slip number"></div>
