@@ -72,7 +72,6 @@
     const role=String(staff.role||"staff").toLowerCase();
     const canManage=role==="admin";
     document.querySelectorAll(".admin-only,.admin-nav").forEach(el=>{el.hidden=!canManage;});
-    show("users",role==="admin"&&String(staff.username||"").toLowerCase()==="ana");
     show("posManagement",canManage);
     $("dateLine").textContent="Point of sale and voucher tools · Philippine time";
     refresh();
@@ -238,61 +237,6 @@
   $("refreshPos").addEventListener("click",()=>loadPosManagement().catch(console.error));
   posReset();
 
-  $("loginForm").addEventListener("submit",async e=>{
-    e.preventDefault();
-    $("loginError").textContent="";
-    $("pin").removeAttribute("aria-describedby");
-    $("pin").setAttribute("aria-invalid","false");
-    try{
-      const data=await api("/api/staff/login",{method:"POST",body:JSON.stringify({nickname:$("nickname").value,pin:$("pin").value})});
-      $("pin").value="";
-      $("togglePin").textContent="Show PIN";
-      $("togglePin").setAttribute("aria-pressed","false");
-      $("pin").type="password";
-      routeSignedIn(data.staff);
-    }catch(error){
-      $("loginError").textContent=error.message;
-      $("pin").setAttribute("aria-invalid","true");
-      $("pin").setAttribute("aria-describedby","loginError");
-      $("pin").focus();
-    }
-  });
-  $("pin").addEventListener("input",()=>{
-    if($("loginError").textContent){
-      $("loginError").textContent="";
-      $("pin").removeAttribute("aria-describedby");
-      $("pin").setAttribute("aria-invalid","false");
-    }
-  });
-  $("togglePin").addEventListener("click",()=>{
-    const input=$("pin"),button=$("togglePin");
-    const reveal=input.type==="password";
-    input.type=reveal?"text":"password";
-    button.textContent=reveal?"Hide PIN":"Show PIN";
-    button.setAttribute("aria-pressed",String(reveal));
-    input.focus();
-  });
-  $("pinForm").addEventListener("submit",async e=>{e.preventDefault();$("pinError").textContent="";if($("newPin").value!==$("confirmPin").value){$("pinError").textContent="PINs do not match";return;}try{await api("/api/staff/change-pin",{method:"POST",body:JSON.stringify({pin:$("newPin").value})});$("newPin").value=$("confirmPin").value="";await session();}catch(err){$("pinError").textContent=err.message;}});
-  $("userAccessForm").addEventListener("submit",async e=>{
-    e.preventDefault();
-    $("userAccessMessage").textContent="";
-    $("issuedTemporaryPin").hidden=true;
-    $("issuedPin").textContent="••••";
-    $("issueAnmerPin").disabled=true;
-    try{
-      const d=await api("/api/rms/users/temporary-pin",{method:"POST",body:JSON.stringify({nickname:"Anmer"})});
-      $("issuedPin").textContent=d.temporaryPin;
-      $("issuedTemporaryPin").hidden=false;
-      $("userAccessMessage").textContent="Anmer's temporary PIN has been generated. Only Ana can see it here; pass it directly to him.";
-      await loadUsers();
-    }catch(err){$("userAccessMessage").textContent=err.message;}
-    finally{$("issueAnmerPin").disabled=false;}
-  });
-  $("copyIssuedPin").addEventListener("click",async()=>{
-    const pin=$("issuedPin").textContent;
-    try{await navigator.clipboard.writeText(pin);$("copyIssuedPin").textContent="Copied";}catch{$("copyIssuedPin").textContent="Select PIN to copy";}
-  });
-  $("logout").addEventListener("click",async()=>{await stopScanner();try{await api("/api/staff/logout",{method:"POST"});}finally{clearIssuedTemporaryPin();currentStaff=null;document.body.classList.add("auth-landing");show("appContent",false);show("accessPanel",false);show("pinSetupPanel",false);show("loginPanel",true);}});
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
   session();
 })();
