@@ -161,8 +161,9 @@
   $("productPlus").addEventListener("click",()=>{posQty=Math.min(99,posQty+1);posProductRender();});
   $("addToOrder").addEventListener("click",()=>{posAdd(posFlavor,posQty);posQty=1;posProductRender();});
   document.querySelectorAll("[data-quick-boxes]").forEach(b=>b.addEventListener("click",()=>posAdd(posFlavor,Number(b.dataset.quickBoxes))));
+  $("cartDrawerToggle").addEventListener("click",()=>{const details=$("cartDrawerDetails"),expanded=$("cartDrawerToggle").getAttribute("aria-expanded")==="true";details.hidden=expanded;$("cartDrawerToggle").setAttribute("aria-expanded",String(!expanded));$("cartDrawerToggle").textContent=expanded?"View order":"Hide order";$("pos").classList.toggle("cart-expanded",!expanded);});
   $("cartItems").addEventListener("click",event=>{const b=event.target.closest("button[data-cart-flavor]");if(!b)return;const flavor=b.dataset.cartFlavor,delta=Number(b.dataset.cartDelta),next=(posCart[flavor]||0)+delta;if(next<=0)delete posCart[flavor];else if(posBoxes()+delta<=99)posCart[flavor]=next;posRequestId=null;posCartRender();});
-  $("openCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=false;$("receiptPanel").hidden=true;$("cashReceived").value=String(posTotal());$("checkoutTotal").textContent=posMoney(posTotal());posSetPayment(posPayment);$("checkoutPanel").scrollIntoView({behavior:"smooth",block:"start"});});
+  $("openCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=false;$("receiptPanel").hidden=true;$("cashReceived").value=String(posTotal());$("checkoutTotal").textContent=posMoney(posTotal());posSetPayment(posPayment);});
   $("closeCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=true;});
   document.querySelectorAll("[data-payment]").forEach(b=>b.addEventListener("click",()=>posSetPayment(b.dataset.payment)));
   $("cashReceived").addEventListener("input",posUpdateChange);
