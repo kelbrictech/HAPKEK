@@ -465,7 +465,7 @@ export default {
       let response;
       if (!staff) response = reply({error:"Authentication required"},401);
       else if (staff.must_change_pin) response = reply({error:"Set your permanent PIN before using RMS"},403);
-            } else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
+      else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
         try { response = await rmsPosCheckout(request,env,staff); }
         catch (error) { console.error("POS checkout error",error); response = reply({error:"Could not complete checkout"},500); }
       } else if (url.pathname === "/api/rms/pos/summary" && request.method === "GET" && RMS_READ_ROLES.has(staff.role || "staff")) {
