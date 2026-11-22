@@ -11,7 +11,56 @@
   function cell(text){const td=document.createElement("td");td.textContent=text==null?"—":String(text);return td;}
   function row(parent,values){const tr=document.createElement("tr");values.forEach(v=>tr.append(v instanceof Node?v:cell(v)));parent.append(tr);}
   function fmt(value){if(!value)return "—";return new Date(value).toLocaleString("en-PH",{timeZone:"Asia/Manila",dateStyle:"medium",timeStyle:"short"});}
-  async function loadNicknames(){try{const d=await api("/api/staff/users");const select=$("nickname");select.replaceChildren(new Option("Select your nickname",""));d.users.filter(u=>u.active).forEach(u=>select.add(new Option(u.nickname,u.nickname)));if(select.options.length===1)select.replaceChildren(new Option("No active staff accounts",""));}catch{$("nickname").replaceChildren(new Option("Could not load users",""));}}
+  const signInFields=[$("nickname"),$("pin")];
+  const signInAnnouncer=document.createElement("div");
+  signInAnnouncer.className="visually-hidden";
+  signInAnnouncer.setAttribute("aria-live","polite");
+  document.body.append(signInAnnouncer);
+  let signInAnnouncementTimer=null;
+  function syncSignInField(field,announce=false){
+    if(!signInFields.includes(field))return;
+    const invalid=field.matches(":user-invalid");
+    const wasInvalid=field.getAttribute("aria-invalid")==="true";
+    field.setAttribute("aria-invalid",invalid?"true":"false");
+    const errorId=field.dataset.error;
+    const descriptions=(field.getAttribute("aria-describedby")||"").split(/\s+/).filter(id=>id&&id!==errorId);
+    if(invalid&&errorId)descriptions.push(errorId);
+    if(descriptions.length)field.setAttribute("aria-describedby",descriptions.join(" "));
+    else field.removeAttribute("aria-describedby");
+    if(invalid&&announce&&!wasInvalid){
+      clearTimeout(signInAnnouncementTimer);
+      signInAnnouncer.textContent="";
+      const label=field.labels?.[0]?.textContent?.trim()||"Field";
+      const message=$(errorId)?.textContent?.trim()||"Check this field.";
+      signInAnnouncementTimer=setTimeout(()=>{signInAnnouncer.textContent=label+": "+message;},500);
+    }else if(!invalid&&wasInvalid){
+      clearTimeout(signInAnnouncementTimer);
+      signInAnnouncer.textContent="";
+    }
+  }
+  signInFields.forEach(field=>field.setAttribute("aria-invalid","false"));
+  document.addEventListener("blur",event=>syncSignInField(event.target,true),true);
+  document.addEventListener("input",event=>syncSignInField(event.target),true);
+  document.addEventListener("change",event=>syncSignInField(event.target,true),true);
+  document.addEventListener("invalid",event=>syncSignInField(event.target),true);
+
+  async function loadNicknames(){
+    const select=$("nickname");
+    try{
+      const data=await api("/api/staff/users");
+      const activeUsers=(data.users||[]).filter(user=>user.active);
+      const placeholder=new Option(activeUsers.length?"Choose your staff account":"No active staff accounts","",true,true);
+      placeholder.disabled=true;
+      select.replaceChildren(placeholder);
+      activeUsers.forEach(user=>select.add(new Option(user.nickname,user.nickname)));
+      select.disabled=activeUsers.length===0;
+    }catch{
+      const placeholder=new Option("Could not load staff accounts","",true,true);
+      placeholder.disabled=true;
+      select.replaceChildren(placeholder);
+      select.disabled=true;
+    }
+  }
   function routeSignedIn(staff){
     currentStaff=staff;
     $("userName").textContent=staff.displayName||staff.nickname||"Staff";
@@ -191,7 +240,40 @@
   $("refreshPos").addEventListener("click",()=>loadPosManagement().catch(console.error));
   posReset();
 
-  $("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="";try{const d=await api("/api/staff/login",{method:"POST",body:JSON.stringify({nickname:$("nickname").value,pin:$("pin").value})});$("pin").value="";routeSignedIn(d.staff);}catch(err){$("loginError").textContent=err.message;}});
+  $("loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    $("loginError").textContent="";
+    $("pin").removeAttribute("aria-describedby");
+    $("pin").setAttribute("aria-invalid","false");
+    try{
+      const data=await api("/api/staff/login",{method:"POST",body:JSON.stringify({nickname:$("nickname").value,pin:$("pin").value})});
+      $("pin").value="";
+      $("togglePin").textContent="Show PIN";
+      $("togglePin").setAttribute("aria-pressed","false");
+      $("pin").type="password";
+      routeSignedIn(data.staff);
+    }catch(error){
+      $("loginError").textContent=error.message;
+      $("pin").setAttribute("aria-invalid","true");
+      $("pin").setAttribute("aria-describedby","loginError");
+      $("pin").focus();
+    }
+  });
+  $("pin").addEventListener("input",()=>{
+    if($("loginError").textContent){
+      $("loginError").textContent="";
+      $("pin").removeAttribute("aria-describedby");
+      $("pin").setAttribute("aria-invalid","false");
+    }
+  });
+  $("togglePin").addEventListener("click",()=>{
+    const input=$("pin"),button=$("togglePin");
+    const reveal=input.type==="password";
+    input.type=reveal?"text":"password";
+    button.textContent=reveal?"Hide PIN":"Show PIN";
+    button.setAttribute("aria-pressed",String(reveal));
+    input.focus();
+  });
   $("pinForm").addEventListener("submit",async e=>{e.preventDefault();$("pinError").textContent="";if($("newPin").value!==$("confirmPin").value){$("pinError").textContent="PINs do not match";return;}try{await api("/api/staff/change-pin",{method:"POST",body:JSON.stringify({pin:$("newPin").value})});$("newPin").value=$("confirmPin").value="";await session();}catch(err){$("pinError").textContent=err.message;}});
   $("userAccessForm").addEventListener("submit",async e=>{
     e.preventDefault();
