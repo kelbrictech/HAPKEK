@@ -911,3 +911,92 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
   #checkoutPanel .cash-shortcuts button{min-height:32px!important}
   #receiptPanel .receipt-row{padding:2px 0!important;font-size:9px!important}
 }
+
+
+/* Final mobile POS: exactly three states; accordion sections are not separate pages. */
+@media(max-width:680px){
+  html,body{height:100%;overflow:hidden!important;overscroll-behavior:none}
+  body{position:fixed;inset:0}
+  .layout{display:flex!important;height:100dvh!important;min-height:0!important;overflow:hidden!important}
+  .sidebar{display:none!important}
+  .main{display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding:0 0 env(safe-area-inset-bottom)!important}
+  .topbar{flex:0 0 48px!important;height:48px!important;min-height:48px!important;margin:0!important;padding:5px 12px!important}
+  #appContent{flex:1 1 auto!important;height:calc(100dvh - 48px - env(safe-area-inset-bottom))!important;min-height:0!important;overflow:hidden!important;padding:0 12px!important}
+  #pos.workspace-view.is-active{position:relative!important;display:flex!important;flex-direction:column!important;height:100%!important;min-height:0!important;overflow:hidden!important;margin:0!important}
+  #pos .pos-heading{flex:0 0 auto!important;min-height:38px!important;margin:0!important;padding:5px 0!important}
+  #pos .pos-heading h2{font-size:18px!important}
+  #pos .pos-heading .muted{font-size:10px!important;margin:1px 0 0!important}
+  #pos .rms-flow,#pos .flow-actions{display:none!important}
+  #pos .pos-layout{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;overflow:hidden!important;gap:5px!important}
+  #pos .pos-product-area{display:flex!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+  #pos .pos-product-card{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;overflow:hidden!important;padding:8px!important;gap:0!important}
+  #pos .product-art{display:none!important}
+  #pos .product-info{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:4px 8px!important;margin:0 0 7px!important;padding:0 0 6px!important}
+  #pos .product-info h3{font-size:15px!important;margin:0!important}
+  #pos .product-info p{font-size:10px!important;margin:0!important}
+  #pos .product-info>strong{font-size:16px!important;margin-left:auto!important}
+  #pos .flavor-picker{margin:0 0 7px!important}
+  #pos .flavor-picker legend{font-size:12px!important;margin-bottom:6px!important}
+  #pos .flavor-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  #pos .flavor-option,#pos .flavor-option:last-child{grid-column:auto!important;min-height:43px!important;padding:7px 10px!important;border-radius:24px!important;font-size:13px!important}
+  #pos .product-quantity{display:grid!important;grid-template-columns:40px 32px 40px 1fr!important;margin:0 0 7px!important;padding:5px 7px!important;gap:0!important}
+  #pos .product-quantity button{width:40px!important;height:38px!important;min-width:40px!important;font-size:22px!important}
+  #pos .product-quantity output{font-size:16px!important}
+  #pos .add-order-btn{flex:0 0 43px!important;min-height:43px!important;padding:7px 12px!important;border-radius:24px!important;font-size:13px!important}
+  #pos .pos-quick-qty{display:grid!important;grid-template-columns:auto repeat(4,minmax(0,1fr))!important;gap:5px!important;margin:7px 0 0!important;padding:0!important}
+  #pos .pos-quick-qty>span{font-size:9px!important}
+  #pos .pos-quick-qty button{min-height:33px!important;padding:4px 2px!important;font-size:10px!important;border-radius:20px!important}
+  #pos .pos-note{display:none!important}
+  #pos .pos-order-card{position:relative!important;inset:auto!important;flex:0 0 auto!important;width:100%!important;max-height:none!important;margin:0!important;padding:8px 10px calc(8px + env(safe-area-inset-bottom))!important;border-radius:13px 13px 0 0!important}
+  #pos .order-heading>div:first-child{display:none!important}
+  #pos .order-heading-actions{display:none!important}
+  #pos .cart-drawer-details{position:absolute!important;left:8px!important;right:8px!important;bottom:calc(100% + 6px)!important;max-height:34dvh!important;overflow-y:auto!important;padding:10px!important;border-radius:14px!important;background:#fffdf9!important;box-shadow:0 8px 30px #24160f35!important}
+  #pos .cart-drawer-details[hidden]{display:none!important}
+  #pos .mobile-cart-footer{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:9px!important;margin:0!important;padding:0!important;border:0!important}
+  #pos .mobile-cart-footer .cart-drawer-toggle{display:flex!important;align-items:center!important;gap:8px!important;min-height:48px!important;padding:5px 10px!important;border:0!important;border-radius:26px!important;background:#292b32!important;color:#fff!important}
+  #pos .mobile-cart-footer .drawer-caret{display:grid;place-items:center;width:30px;height:30px;background:#fff;color:#8f2d1e;border-radius:8px;font-size:19px}
+  #pos .mobile-cart-footer .order-totals{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;padding:0!important;border:0!important}
+  #pos .mobile-cart-footer .drawer-count{display:flex!important;flex-direction:column!important;font-size:10px!important;color:#b8a89b!important;white-space:nowrap}
+  #pos .mobile-cart-footer .drawer-count small{font-size:9px!important;color:#b8a89b!important}
+  #pos .mobile-cart-footer .grand-total{display:flex!important;flex-direction:column!important;padding:0!important;border:0!important}
+  #pos .mobile-cart-footer .grand-total>span{font-size:9px!important;color:#b8a89b!important}
+  #pos .mobile-cart-footer .grand-total strong{font-size:18px!important;color:#c44a2c!important}
+  #pos .mobile-cart-footer .checkout-btn{min-width:142px!important;min-height:46px!important;margin:0!important;padding:8px 12px!important;border-radius:24px!important;font-size:12px!important;white-space:nowrap!important}
+  #pos #checkoutPanel:not([hidden]){position:absolute!important;z-index:90!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;max-height:100%!important;min-height:0!important;margin:0!important;padding:9px 10px calc(8px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:#f6f1e7!important}
+  #pos #checkoutPanel form{display:flex!important;flex-direction:column!important;gap:6px!important;height:100%!important;min-height:0!important;overflow:hidden!important}
+  #pos #checkoutPanel .checkout-head{flex:0 0 34px!important;min-height:34px!important}
+  #pos #checkoutPanel .checkout-head h3{font-size:17px!important}
+  #pos #checkoutPanel .checkout-due{flex:0 0 auto!important;margin:0!important;padding:7px 10px!important}
+  #pos #checkoutPanel .checkout-due strong{font-size:21px!important}
+  #pos #checkoutPanel .payment-methods{flex:0 0 auto!important;margin:0!important}
+  #pos #checkoutPanel .payment-options{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin:4px 0 0!important}
+  #pos #checkoutPanel .payment-option{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;min-height:43px!important;padding:6px 10px!important;border-radius:24px!important;font-size:12px!important;text-align:left!important}
+  #pos #checkoutPanel .payment-option small{display:block!important;font-size:9px!important;font-weight:400!important}
+  #pos #checkoutPanel .cash-fields{flex:0 0 auto!important;margin:0!important}
+  #pos #checkoutPanel .cash-fields label{font-size:11px!important;margin:0 0 4px!important}
+  #pos #checkoutPanel .cash-input-wrap input{min-height:42px!important;font-size:17px!important}
+  #pos #checkoutPanel .cash-shortcuts{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin-top:5px!important}
+  #pos #checkoutPanel .cash-shortcuts button{min-width:0!important;min-height:34px!important;padding:4px 2px!important;font-size:10px!important;border-radius:20px!important}
+  #pos #checkoutPanel .change-row{padding:6px 0!important;font-size:11px!important}
+  #pos #checkoutPanel .change-row strong{font-size:15px!important}
+  #pos #checkoutPanel #referenceField{flex:0 0 auto!important}
+  #pos #checkoutPanel #referenceField input{width:100%!important;min-height:42px!important}
+  #pos #checkoutPanel .payment-hint{flex:0 0 auto!important;margin:0!important;font-size:9px!important}
+  #pos #checkoutPanel .confirm-payment-btn{flex:0 0 46px!important;min-height:46px!important;margin:auto 0 0!important;font-size:13px!important}
+  #pos #checkoutPanel #checkoutError{flex:0 0 auto!important;min-height:0!important;margin:0!important;font-size:9px!important}
+  #pos #receiptPanel:not([hidden]){position:absolute!important;z-index:95!important;inset:0!important;display:flex!important;flex-direction:column!important;gap:5px!important;width:100%!important;height:100%!important;max-height:100%!important;min-height:0!important;margin:0!important;padding:9px 10px calc(8px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:#f6f1e7!important}
+  #pos #receiptPanel .receipt-success{flex:0 0 30px!important;width:30px!important;height:30px!important;margin:0 auto!important}
+  #pos #receiptPanel h3{font-size:17px!important;margin:0!important}
+  #pos #receiptPanel .receipt-subtitle{font-size:10px!important;margin:0!important}
+  #pos #receiptPanel .receipt-paper{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;margin:0!important;padding:8px!important}
+  #pos #receiptPanel .receipt-row{padding:3px 0!important;font-size:10px!important}
+  #pos #receiptPanel .receipt-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;flex:0 0 44px!important}
+  #pos #receiptPanel .receipt-actions button{min-height:42px!important;margin:0!important}
+}
+@media(max-width:680px) and (max-height:700px){
+  #pos .pos-heading{min-height:32px!important;padding:3px 0!important}
+  #pos .flavor-option,#pos .flavor-option:last-child{min-height:38px!important}
+  #pos .pos-quick-qty button{min-height:29px!important}
+  #pos #checkoutPanel .payment-option{min-height:38px!important}
+  #pos #checkoutPanel .cash-shortcuts button{min-height:30px!important}
+}
