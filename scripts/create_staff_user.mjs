@@ -4,8 +4,9 @@
 import { webcrypto } from 'node:crypto';
 
 const [username, displayName, role = "staff"] = process.argv.slice(2);
-if (String(username || "").toLowerCase() === "webmaster") {
-  console.error("The Webmaster account name is retired.");
+const reservedUsernames = new Set(["webmaster", "anmer"]);
+if (reservedUsernames.has(String(username || "").trim().toLowerCase())) {
+  console.error("This nickname is reserved and cannot be provisioned by the bootstrap script.");
   process.exit(1);
 }
 if (!username || !displayName || username.length > 20 || displayName.length > 40 ||
