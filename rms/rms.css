@@ -537,3 +537,84 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
   .pos-order-card{max-height:32%;padding:6px}
   .flow-actions .primary,.flow-actions .outline{min-height:31px}
 }
+
+
+/* Counter-first mobile POS: larger type and generous touch targets. */
+@media(max-width:680px){
+  .pos-heading{min-height:48px}
+  .pos-heading h2{font-size:23px;line-height:1.1}
+  .pos-heading .muted{font-size:11px}
+  .pos-open-pill{font-size:11px;padding:7px 10px}
+  .rms-flow{padding:7px 9px;margin-bottom:8px}
+  .rms-flow-step{font-size:10px;gap:5px}
+  .rms-flow-step b{width:22px;height:22px;font-size:10px}
+  .pos-layout{grid-template-rows:minmax(0,1fr) auto;gap:8px}
+  .pos-product-card{grid-template-columns:70px minmax(0,1fr);gap:7px 10px;padding:10px}
+  .product-art{width:70px;height:70px}
+  .product-info h3{font-size:18px;margin:3px 0}
+  .product-info p{font-size:11px}
+  .product-info>strong{font-size:20px}
+  .product-info small{font-size:11px}
+  .product-tag{font-size:9px;padding:4px 6px}
+  .flavor-picker{margin-top:6px}
+  .flavor-picker legend{font-size:12px;margin-bottom:6px}
+  .flavor-grid{gap:6px}
+  .flavor-option,.flavor-option:last-child{
+    min-height:46px;padding:8px 7px;font-size:12px;gap:6px;border-radius:10px
+  }
+  .flavor-dot{width:11px;height:11px}
+  .product-quantity{gap:12px;margin-top:6px}
+  .product-quantity button{width:44px;height:44px;min-width:44px;font-size:25px;border-radius:11px}
+  .product-quantity output{font-size:19px;min-width:24px}
+  .product-quantity>span{font-size:12px}
+  .add-order-btn{min-height:50px;padding:10px 13px;font-size:14px;border-radius:11px}
+  .add-order-btn span{font-size:16px}
+  .pos-order-card{max-height:36%;padding:11px}
+  .order-heading h3{font-size:17px}
+  .order-count{font-size:11px;padding:6px 9px}
+  .empty-cart{padding:8px}
+  .empty-cart-icon{font-size:22px}
+  .empty-cart strong{font-size:13px}
+  .empty-cart small{font-size:11px}
+  .cart-items{max-height:76px;gap:5px;margin:6px 0}
+  .cart-line{padding:7px 8px}
+  .cart-line-main strong{font-size:12px}
+  .cart-line-main small{font-size:10px}
+  .cart-line-price>strong{font-size:13px}
+  .cart-stepper{gap:6px}
+  .cart-stepper button{width:32px;height:32px;min-width:32px;font-size:19px}
+  .cart-stepper span{font-size:12px}
+  .order-totals{gap:5px;padding-top:7px;margin-top:6px}
+  .order-totals>div{font-size:11px}
+  .order-totals .grand-total{font-size:14px;padding-top:6px}
+  .grand-total strong{font-size:22px}
+  .checkout-btn{min-height:48px;margin-top:8px;padding:9px 12px;font-size:13px;border-radius:10px}
+  .secure-caption{font-size:9px;margin-top:5px}
+  .flow-actions{padding-top:7px}
+  .flow-actions .primary,.flow-actions .outline{min-height:46px;padding:9px 13px;font-size:13px}
+  .flow-hint{font-size:10px}
+  /* Make all payment controls usable with a thumb, without adding scrolling. */
+  .checkout-head h3{font-size:18px}
+  .checkout-due{padding:10px 12px}
+  .checkout-due span{font-size:13px}
+  .checkout-due strong{font-size:22px}
+  .payment-option{min-height:46px;font-size:12px}
+  .cash-fields label,.field-label{font-size:12px}
+  .cash-input-wrap input{min-height:44px;font-size:16px}
+  .cash-shortcuts button{min-height:38px;padding:7px 10px;font-size:11px}
+  .change-row{font-size:12px}
+  .change-row strong{font-size:16px}
+  .payment-hint{font-size:11px}
+  .confirm-payment-btn{min-height:48px;font-size:13px}
+  .pos-screen[data-pos-stage="2"] .order-details-fields label{font-size:12px}
+  .pos-screen[data-pos-stage="2"] .order-details-fields input{min-height:44px;font-size:15px}
+  .pos-screen[data-pos-stage="2"] .order-details-fields textarea{font-size:14px}
+}
+@media(max-width:680px) and (max-height:740px){
+  .pos-heading h2{font-size:21px}
+  .pos-product-card{padding:8px}
+  .flavor-option,.flavor-option:last-child{min-height:40px;font-size:11px}
+  .pos-order-card{max-height:37%;padding:8px}
+  .order-totals>div{font-size:10px}
+  .grand-total strong{font-size:19px}
+}
