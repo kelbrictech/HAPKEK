@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#321912"><title>HAPKEK RMS — Operations</title><link rel="stylesheet" href="rms.css">
+<meta name="theme-color" content="#321912"><title>HAPKEK RMS | Sign in</title><link rel="stylesheet" href="rms.css?v=20261122-login2">
 </head>
-<body>
+<body class="auth-landing">
 <div class="layout login-mode">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <a class="brand" href="./">HAPKEK <span>RMS</span></a>
     <div class="side-label">OPERATIONS</div>
     <a class="nav active" href="#pos" id="posNav">Point of sale</a>
@@ -21,10 +21,36 @@
     <div class="sidebar-bottom"><p>HAPKEK Retail Management System</p></div>
   </aside>
   <main class="main">
-    <header class="topbar"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Staff</strong><small id="userRole">Checking access</small></div><button id="logout" class="outline">Sign out</button></div></header>
-    <section id="loginPanel" class="panel login-panel"><h2>RMS sign in</h2><p class="muted">Use your authorized HAPKEK staff account.</p><form id="loginForm"><label>Choose your nickname<select id="nickname" required><option value="">Loading users…</option></select></label><label>4-digit PIN<input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></label><button class="primary">Log in</button><p id="loginError" class="error" role="alert"></p></form></section>
+    <header class="topbar" id="mainHeader"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Staff</strong><small id="userRole">Checking access</small></div><button id="logout" class="outline">Sign out</button></div></header>
+    <section id="loginPanel" class="panel login-panel auth-card" aria-labelledby="loginTitle">
+      <div class="auth-brand"><span class="auth-mark">H</span><span class="auth-brand-copy"><strong>HAPKEK</strong><small>RETAIL MANAGEMENT SYSTEM</small></span></div>
+      <p class="eyebrow auth-eyebrow">SECURE STAFF ACCESS</p>
+      <h1 id="loginTitle">Sign in to RMS</h1>
+      <p class="auth-intro">Use your assigned staff account to open your workspace.</p>
+      <form id="loginForm">
+        <label for="nickname">Staff account</label>
+        <select id="nickname" required><option value="">Loading active accounts…</option></select>
+        <label for="pin">4-digit PIN</label>
+        <input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" placeholder="Enter your PIN" required>
+        <button class="primary auth-submit" type="submit">Sign in</button>
+        <p id="loginError" class="error" role="alert"></p>
+      </form>
+      <p class="auth-footnote">Access is based on your assigned RMS role.</p>
+    </section>
     <section id="accessPanel" class="panel" hidden><h2>Access required</h2><p>This account does not have permission to use this RMS workspace. Contact your RMS administrator.</p></section>
-    <section id="pinSetupPanel" class="panel login-panel" hidden><h2>Set your permanent PIN</h2><p class="muted">Choose a new 4-digit PIN before using HAPKEK RMS.</p><form id="pinForm"><label>New 4-digit PIN<input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><label>Confirm new PIN<input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><button class="primary">Save permanent PIN</button><p id="pinError" class="error" role="alert"></p></form></section>
+    <section id="pinSetupPanel" class="panel login-panel auth-card" hidden aria-labelledby="pinSetupTitle">
+      <div class="auth-brand"><span class="auth-mark">H</span><span class="auth-brand-copy"><strong>HAPKEK</strong><small>RETAIL MANAGEMENT SYSTEM</small></span></div>
+      <p class="eyebrow auth-eyebrow">FIRST SIGN-IN</p>
+      <h1 id="pinSetupTitle">Create your PIN</h1>
+      <p class="auth-intro">Set a new 4-digit PIN to secure your RMS account.</p>
+      <form id="pinForm">
+        <label for="newPin">New 4-digit PIN</label><input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Choose a new PIN" required>
+        <label for="confirmPin">Confirm new PIN</label><input id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Re-enter your PIN" required>
+        <button class="primary auth-submit" type="submit">Save PIN and continue</button>
+        <p id="pinError" class="error" role="alert"></p>
+      </form>
+      <p class="auth-footnote">Your PIN is private. Do not share it with other staff.</p>
+    </section>
     <div id="appContent" hidden>
 
       <section class="pos-screen" id="pos" aria-labelledby="posTitle">
@@ -159,5 +185,5 @@
     </div>
   </main>
 </div>
-<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js"></script>
+<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261122-login2"></script>
 </body></html>
