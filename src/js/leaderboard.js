@@ -1,7 +1,7 @@
 /* HAPKEK leaderboard: score submission, board rendering and the leaderboard modal.
    Needs H.fmt and H.showModal, which game.js provides before any of these functions run. */
 (function (H) {
-  const API = 'https://hapkek-leaderboard.kelbrictech.workers.dev';
+  const API = 'https://api.kelbric.com';
 
   function escapeText(v) {
     return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
