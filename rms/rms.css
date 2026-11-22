@@ -436,3 +436,104 @@ body.menu-open .menu-toggle span:last-child{transform:translateY(-7px) rotate(-4
  .filters input,.filters select{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.sidebar,.menu-toggle span{transition:none}}
+
+
+/* Fixed-screen POS correction: no page, workspace, or panel scrolling on phones. */
+@media(max-width:680px){
+  html,body{height:100%;min-height:0;overflow:hidden}
+  .layout,.main{height:100dvh;min-height:0;overflow:hidden}
+  .main{display:flex;flex-direction:column;padding:0 10px 8px}
+  .topbar{flex:0 0 58px;min-height:58px;margin:0 -10px 7px;padding:7px 10px}
+  #appContent{flex:1 1 auto;min-height:0;height:auto;overflow:hidden}
+  #pos.workspace-view.is-active{height:100%;min-height:0;display:flex!important;flex-direction:column;overflow:hidden;padding:0}
+  .pos-heading{flex:0 0 auto;margin:0 0 5px;min-height:43px}
+  .pos-heading h2{font-size:19px;line-height:1.05}
+  .pos-heading .muted{font-size:9px;margin:2px 0 0}
+  .pos-open-pill{font-size:9px;padding:5px 7px}
+  .rms-flow{flex:0 0 auto;margin:0 0 6px;padding:5px 7px;gap:4px}
+  .rms-flow-step{font-size:8px;gap:3px}
+  .rms-flow-step b{width:17px;height:17px;font-size:8px}
+  .rms-flow-line{min-width:4px}
+  .pos-layout{flex:1 1 0;min-height:0;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto;gap:6px;overflow:hidden!important}
+  .pos-product-area{min-height:0;overflow:hidden!important;padding:0!important;display:flex;flex-direction:column}
+  .pos-product-card{flex:0 0 auto;grid-template-columns:58px minmax(0,1fr);gap:5px 8px;padding:7px;border-radius:12px}
+  .product-art{width:58px;height:58px;border-radius:9px}
+  .product-info h3{font-size:14px;margin:2px 0}
+  .product-info p{font-size:9px;margin:0 0 2px}
+  .product-info>strong{font-size:16px}
+  .product-info small{font-size:9px}
+  .product-tag{font-size:7px;padding:3px 5px}
+  .flavor-picker{margin:3px 0 0}
+  .flavor-picker legend{font-size:9px;margin-bottom:4px}
+  .flavor-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+  .flavor-option,.flavor-option:last-child{grid-column:auto;min-height:31px;padding:4px 5px;font-size:9px;gap:4px;border-radius:7px}
+  .flavor-dot{width:8px;height:8px}
+  .product-quantity{gap:8px;margin-top:3px}
+  .product-quantity button{width:30px;height:30px;min-width:30px;font-size:18px;border-radius:8px}
+  .product-quantity output{font-size:14px;min-width:18px}
+  .product-quantity>span{font-size:9px}
+  .add-order-btn{min-height:35px;padding:7px 10px;font-size:11px;border-radius:8px}
+  .add-order-btn span{font-size:12px}
+  .pos-quick-qty,.pos-note{display:none!important}
+  .pos-order-card{min-height:0;max-height:34%;overflow:hidden!important;padding:8px;border-radius:12px}
+  .order-heading h3{font-size:13px}
+  .order-count{font-size:9px;padding:4px 7px}
+  .empty-cart{padding:5px}
+  .empty-cart-icon{font-size:16px;margin:0}
+  .empty-cart strong{font-size:10px}
+  .empty-cart small{font-size:9px;margin-top:2px}
+  .cart-items{max-height:54px;overflow:hidden;gap:3px;margin:4px 0}
+  .cart-line{padding:4px 6px;border-radius:7px}
+  .cart-line-main strong,.cart-line-price>strong{font-size:10px}
+  .cart-line-main small{font-size:8px;margin-top:1px}
+  .cart-stepper{gap:4px;margin-top:2px}
+  .cart-stepper button{width:22px;height:22px;min-width:22px;font-size:13px}
+  .cart-stepper span{font-size:9px}
+  .order-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;padding-top:5px;margin-top:4px}
+  .order-totals>div{font-size:9px}
+  .order-totals .grand-total{grid-column:1/-1;padding-top:4px;font-size:11px}
+  .grand-total strong{font-size:16px}
+  .checkout-btn{min-height:34px;margin-top:5px;padding:6px 9px;font-size:10px;border-radius:8px}
+  .secure-caption{font-size:8px;margin:3px 0 0}
+  .flow-actions{flex:0 0 auto;padding:5px 0 0;gap:6px}
+  .flow-actions .primary,.flow-actions .outline{min-width:0;min-height:35px;padding:6px 9px;font-size:10px}
+  .flow-hint{font-size:8px}
+  /* Details and payment are their own fixed workspaces, not long pages. */
+  .pos-screen[data-pos-stage="2"] .pos-layout,
+  .pos-screen[data-pos-stage="3"] .pos-layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto;overflow:hidden!important}
+  .pos-screen[data-pos-stage="2"] .pos-product-area{display:block;overflow:hidden!important}
+  .pos-screen[data-pos-stage="2"] .order-details-fields{height:100%;max-width:none;margin:0;padding:12px;overflow:hidden}
+  .pos-screen[data-pos-stage="2"] .order-details-fields label{margin:8px 0 4px;font-size:10px}
+  .pos-screen[data-pos-stage="2"] .order-details-fields input{min-height:38px;padding:8px;font-size:13px}
+  .pos-screen[data-pos-stage="2"] .order-details-fields textarea{height:70px;min-height:70px;resize:none;padding:8px;font-size:12px}
+  .pos-screen[data-pos-stage="2"] .pos-order-card,
+  .pos-screen[data-pos-stage="3"] .pos-order-card{max-height:27%;margin:0}
+  .pos-screen[data-pos-stage="3"] .pos-product-area{display:block;min-height:0;overflow:hidden!important}
+  .pos-screen[data-pos-stage="3"] #checkoutPanel{height:100%;max-height:100%;margin:0;padding:10px;overflow:hidden!important}
+  .checkout-head h3{font-size:14px}
+  .checkout-due{margin:6px 0;padding:7px 10px}
+  .checkout-due strong{font-size:18px}
+  .payment-methods{margin:5px 0}
+  .payment-options{gap:5px;margin-top:4px}
+  .payment-option{min-height:36px;font-size:10px}
+  .cash-fields{margin:6px 0}
+  .cash-fields label,.field-label{font-size:10px}
+  .cash-input-wrap input{min-height:36px;font-size:14px}
+  .cash-shortcuts{gap:4px;margin-top:4px}
+  .cash-shortcuts button{min-height:28px;padding:4px 7px;font-size:9px}
+  .change-row{padding:5px 0;font-size:10px}
+  .change-row strong{font-size:13px}
+  .payment-hint{font-size:9px;margin:4px 0}
+  .confirm-payment-btn{min-height:36px;margin-top:4px;padding:7px;font-size:10px}
+  #checkoutError{font-size:9px;min-height:0;margin:2px 0}
+  #pos.has-receipt #receiptPanel{height:100%;max-height:100%;overflow:hidden!important;padding:10px}
+}
+/* Narrow/short devices: preserve the fixed-screen contract and tighten spacing. */
+@media(max-width:680px) and (max-height:740px){
+  .topbar{flex-basis:52px;min-height:52px}
+  .pos-heading{min-height:38px}
+  .pos-product-card{padding:5px;gap:4px 6px}
+  .flavor-option,.flavor-option:last-child{min-height:27px;font-size:8px}
+  .pos-order-card{max-height:32%;padding:6px}
+  .flow-actions .primary,.flow-actions .outline{min-height:31px}
+}
