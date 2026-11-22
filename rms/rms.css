@@ -68,3 +68,6 @@
 .scan-result p{margin:0;font-size:12px;line-height:1.45}
 .receipt-note{font-size:11px;color:#6e5b4c;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
 @media(max-width:720px){.layout.login-mode .main{padding:8vh 14px}.scanner-grid{grid-template-columns:1fr}.scanner-workspace{padding:15px}}
+
+/* Keep role-based navigation available on phones at the counter. */
+@media(max-width:720px){.sidebar .nav{display:block;margin:2px 0;padding:9px 10px;font-size:12px}.sidebar .side-label,.sidebar .later-label{display:none}.sidebar-bottom{display:none}}
