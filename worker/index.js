@@ -287,8 +287,8 @@ async function rmsIssueTemporaryPin(request,env,admin) {
   });
 }
 
-const RMS_READ_ROLES = new Set(["owner", "admin", "manager"]);
-const RMS_ADMIN_ROLES = new Set(["owner", "admin"]);
+const RMS_READ_ROLES = new Set(["admin"]);
+const RMS_ADMIN_ROLES = new Set(["admin"]);
 async function rmsOverview(env) {
   const [claims, prizes, scores, redemptions, staff] = await Promise.all([
     env.DB.prepare(`SELECT COUNT(*) AS issued,
@@ -332,83 +332,6 @@ async function rmsAudit(env, staff, action, entityType, entityId, details={}) {
   await env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json)
     VALUES(?,?,?,?,?)`).bind(staff?.id||null,action,entityType,String(entityId||""),JSON.stringify(details)).run();
 }
-
-const isWebmaster = staff =>
-  String(staff?.username || "").toLowerCase() === "webmaster" &&
-  String(staff?.role || "").toLowerCase() === "owner";
-
-async function rmsWebmasterExport(env) {
-  const [scores, prizes, claims, redemptions, users, sales, saleItems, audit] = await Promise.all([
-    env.DB.prepare("SELECT * FROM hapkek_scores ORDER BY id").all(),
-    env.DB.prepare("SELECT * FROM hapkek_voucher_prizes ORDER BY prize_id").all(),
-    env.DB.prepare("SELECT * FROM hapkek_voucher_claims ORDER BY id").all(),
-    env.DB.prepare("SELECT * FROM hapkek_voucher_redemptions ORDER BY id").all(),
-    env.DB.prepare("SELECT username,display_name,role,active,must_change_pin,created_at,failed_pin_attempts,locked_until FROM hapkek_staff_users ORDER BY id").all(),
-    env.DB.prepare("SELECT * FROM hapkek_pos_sales ORDER BY id").all(),
-    env.DB.prepare("SELECT * FROM hapkek_pos_sale_items ORDER BY id").all(),
-    env.DB.prepare("SELECT id,actor_staff_id,action,entity_type,entity_id,details_json,created_at FROM hapkek_rms_audit_logs ORDER BY id").all()
-  ]);
-  const exportedAt = new Date().toISOString();
-  return reply({
-    format:"hapkek-rms-state-export",
-    version:1,
-    exportedAt,
-    timezone:"Asia/Manila",
-    data:{
-      scores:scores.results||[],
-      voucherPrizes:prizes.results||[],
-      voucherClaims:claims.results||[],
-      voucherRedemptions:redemptions.results||[],
-      staffUsers:users.results||[],
-      posSales:sales.results||[],
-      posSaleItems:saleItems.results||[],
-      auditLogs:audit.results||[]
-    },
-    security:{
-      included:"Operational records and staff account status",
-      excluded:"PIN hashes, PIN salts, authentication sessions, and API secrets"
-    }
-  },200,{
-    "Cache-Control":"no-store, private",
-    "Content-Disposition":`attachment; filename="HAPKEK_RMS_state_${exportedAt.slice(0,10)}.json"`
-  });
-}
-
-async function rmsWebmasterMasterReset(request, env, webmaster) {
-  if (!isWebmaster(webmaster)) return reply({error:"Webmaster access required"},403);
-  let body;
-  try { body=await request.json(); } catch { return reply({error:"Invalid confirmation"},400); }
-  if (body?.confirmation !== "RESET STAFF ACCESS")
-    return reply({error:"Type RESET STAFF ACCESS exactly to confirm"},400);
-
-  const before=await env.DB.prepare(
-    "SELECT COUNT(*) AS total FROM hapkek_staff_users WHERE username <> 'Webmaster' COLLATE NOCASE AND active=1"
-  ).first();
-  const token=cookieValue(request,"hapkek_staff");
-  if(!token) return reply({error:"Authentication required"},401);
-  const tokenHash=await sha256Hex(token);
-
-  await env.DB.prepare(`UPDATE hapkek_staff_users
-    SET active=0,must_change_pin=1,failed_pin_attempts=0,locked_until=0
-    WHERE username <> 'Webmaster' COLLATE NOCASE`).run();
-  const revoked=await env.DB.prepare(
-    "DELETE FROM hapkek_staff_sessions WHERE token_hash <> ?"
-  ).bind(tokenHash).run();
-
-  await rmsAudit(env,webmaster,"webmaster.master_reset","staff_access","all_non_webmaster",{
-    disabledAccounts:Number(before?.total||0),
-    revokedSessions:Number(revoked.meta?.changes||0),
-    preserved:["game scores","voucher claims","voucher redemptions","POS sales","POS sale items","audit history","voucher prize inventory"]
-  });
-  return reply({
-    ok:true,
-    disabledAccounts:Number(before?.total||0),
-    revokedSessions:Number(revoked.meta?.changes||0),
-    message:"All non-Webmaster staff accounts were disabled and their sessions revoked. Operational records were preserved."
-  });
-}
-
-
 
 const POS_UNIT_PRICE_PESOS = 150;
 const POS_PIECES_PER_BOX = 15;
@@ -505,75 +428,8 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type, Authorization"
     }});
     const url = new URL(request.url);
-    const staffPath = url.pathname.startsWith("/api/staff/") || url.pathname.startsWith("/api/rms/") || url.pathname.startsWith("/api/webmaster/");
+    const staffPath = url.pathname.startsWith("/api/staff/") || url.pathname.startsWith("/api/rms/");
     if (staffPath && origin && origin !== staffOrigin) return reply({error:"Origin not allowed"},403);
-    if (url.pathname === "/api/webmaster/bootstrap" && request.method === "POST") {
-      const secret=env.WEBMASTER_BOOTSTRAP_TOKEN||"";
-      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
-      const suppliedHash=await sha256Hex(supplied), expectedHash=await sha256Hex(secret);
-      let authDiff=suppliedHash.length^expectedHash.length;
-      for(let i=0;i<Math.min(suppliedHash.length,expectedHash.length);i++) authDiff|=suppliedHash.charCodeAt(i)^expectedHash.charCodeAt(i);
-      if(!secret || !supplied || authDiff!==0) {
-        const response=reply({error:"Setup link is invalid or expired"},403);
-        for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v);
-        return response;
-      }
-      let body; try{body=await request.json();}catch{return reply({error:"Invalid request"},400);}
-      const existing=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE").first();
-      if(existing) return reply({error:"Initial account setup has already been used. Sign in through RMS."},409);
-      const seeds=await env.DB.prepare("SELECT username,role FROM hapkek_staff_users WHERE username IN ('Ana','Anmer') COLLATE NOCASE").all();
-      const byName=new Map((seeds.results||[]).map(row=>[String(row.username).toLowerCase(),row]));
-      if(byName.get("ana")?.role!=="admin" || byName.get("anmer")?.role!=="staff")
-        return reply({error:"The expected Ana admin and Anmer staff seed accounts were not found. No accounts were changed."},409);
-
-      const [webmasterPin,anaPin,anmerPin]=await Promise.all([
-        generateTemporaryStaffCredential(),generateTemporaryStaffCredential(),generateTemporaryStaffCredential()
-      ]);
-      const statements=[
-        env.DB.prepare(`UPDATE hapkek_staff_users SET display_name='Ana',password_salt=?,password_hash=?,active=1,role='admin',must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE username='Ana' COLLATE NOCASE AND role='admin'`).bind(anaPin.salt,anaPin.hash),
-        env.DB.prepare(`UPDATE hapkek_staff_users SET display_name='Anmer',password_salt=?,password_hash=?,active=1,role='staff',must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE username='Anmer' COLLATE NOCASE AND role='staff'`).bind(anmerPin.salt,anmerPin.hash),
-        env.DB.prepare(`INSERT INTO hapkek_staff_users(username,display_name,password_salt,password_hash,active,role,must_change_pin,failed_pin_attempts,locked_until) VALUES('Webmaster','Webmaster',?,?,1,'owner',1,0,0)`).bind(webmasterPin.salt,webmasterPin.hash),
-        env.DB.prepare(`DELETE FROM hapkek_staff_sessions WHERE staff_id IN (SELECT id FROM hapkek_staff_users WHERE username IN ('Webmaster','Ana','Anmer') COLLATE NOCASE)`),
-        env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json) VALUES(NULL,'staff.initial_credential_issued','staff','Webmaster','{"role":"owner","active":true,"requires_pin_change":true}')`),
-        env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json) VALUES(NULL,'staff.initial_credential_issued','staff','Ana','{"role":"admin","active":true,"requires_pin_change":true}')`),
-        env.DB.prepare(`INSERT INTO hapkek_rms_audit_logs(actor_staff_id,action,entity_type,entity_id,details_json) VALUES(NULL,'staff.initial_credential_issued','staff','Anmer','{"role":"staff","active":true,"requires_pin_change":true}')`)
-      ];
-      const results=await env.DB.batch(statements);
-      if(results[0]?.meta?.changes!==1 || results[1]?.meta?.changes!==1 || results[2]?.meta?.changes!==1)
-        return reply({error:"Initial account setup did not update exactly the three intended accounts. Contact the system administrator."},500);
-      const verified=await env.DB.prepare(`SELECT username,role,active,must_change_pin FROM hapkek_staff_users WHERE username IN ('Webmaster','Ana','Anmer') COLLATE NOCASE ORDER BY username`).all();
-      if((verified.results||[]).length!==3 || verified.results.some(row=>Number(row.active)!==1 || Number(row.must_change_pin)!==1))
-        return reply({error:"Account activation verification failed. Contact the system administrator."},500);
-      const response=reply({
-        ok:true,
-        requiresPinChange:true,
-        accounts:[
-          {nickname:"Webmaster",role:"owner",temporaryPin:webmasterPin.pin},
-          {nickname:"Ana",role:"admin",temporaryPin:anaPin.pin},
-          {nickname:"Anmer",role:"staff",temporaryPin:anmerPin.pin}
-        ],
-        message:"All three accounts are active. Each temporary PIN is valid only to reach the mandatory permanent PIN setup screen."
-      },200,{"Cache-Control":"no-store, private"});
-      for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v);
-      return response;
-    }
-    if (url.pathname === "/api/webmaster/recovery/temporary-pin" && request.method === "POST") {
-      const secret=env.WEBMASTER_RECOVERY_TOKEN||"";
-      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
-      const suppliedHash=await sha256Hex(supplied), expectedHash=await sha256Hex(secret); let authDiff=suppliedHash.length^expectedHash.length; for(let i=0;i<Math.min(suppliedHash.length,expectedHash.length);i++) authDiff|=suppliedHash.charCodeAt(i)^expectedHash.charCodeAt(i); if(!secret || !supplied || authDiff!==0) return reply({error:"Not authorized"},403);
-      let body; try{body=await request.json();}catch{return reply({error:"Invalid request"},400);}
-      const pin=String(body?.temporaryPin||""); if(!/^\d{4}$/.test(pin)) return reply({error:"A 4-digit temporary PIN is required"},400);
-      const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
-      const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
-      const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
-      const hash=bytesToHex(new Uint8Array(bits));
-      const webmaster=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE AND role='owner'").first();
-      if(!webmaster) return reply({error:"Webmaster account has not been provisioned"},404);
-      await env.DB.prepare("UPDATE hapkek_staff_users SET password_salt=?,password_hash=?,active=1,must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE id=?").bind(salt,hash,webmaster.id).run();
-      await env.DB.prepare("DELETE FROM hapkek_staff_sessions WHERE staff_id=?").bind(webmaster.id).run();
-      await rmsAudit(env,{id:webmaster.id},"webmaster.pin_reset","staff","Webmaster",{});
-      return reply({ok:true,nickname:"Webmaster",requiresPinChange:true});
-    }
     if (url.pathname === "/api/staff/users" && request.method === "GET") {
       const response = await staffDirectory(env); for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v); return response;
     }
@@ -608,13 +464,7 @@ export default {
       let response;
       if (!staff) response = reply({error:"Authentication required"},401);
       else if (staff.must_change_pin) response = reply({error:"Set your permanent PIN before using RMS"},403);
-      else if (url.pathname === "/api/rms/webmaster/export" && request.method === "GET") {
-        if (!isWebmaster(staff)) response = reply({error:"Webmaster access required"},403);
-        else { try { response = await rmsWebmasterExport(env); } catch (error) { console.error("Webmaster export failed",error); response = reply({error:"Could not export current RMS state"},500); } }
-      } else if (url.pathname === "/api/rms/webmaster/master-reset" && request.method === "POST") {
-        if (!isWebmaster(staff)) response = reply({error:"Webmaster access required"},403);
-        else { try { response = await rmsWebmasterMasterReset(request,env,staff); } catch (error) { console.error("Webmaster master reset failed",error); response = reply({error:"Master reset did not complete"},500); } }
-      } else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
+            } else if (url.pathname === "/api/rms/pos/checkout" && request.method === "POST") {
         try { response = await rmsPosCheckout(request,env,staff); }
         catch (error) { console.error("POS checkout error",error); response = reply({error:"Could not complete checkout"},500); }
       } else if (url.pathname === "/api/rms/pos/summary" && request.method === "GET" && RMS_READ_ROLES.has(staff.role || "staff")) {
