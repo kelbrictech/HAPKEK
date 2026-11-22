@@ -88,19 +88,33 @@ checks.update({
     "first-run Webmaster bootstrap is protected by a separate one-time token":
         'env.WEBMASTER_BOOTSTRAP_TOKEN' in webmaster_bootstrap_route
         and 'if(!secret || !supplied || authDiff!==0)' in webmaster_bootstrap_route,
-    "first-run bootstrap refuses to overwrite an existing Webmaster":
+    "first-run bootstrap refuses to overwrite existing initial setup":
         "SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE" in webmaster_bootstrap_route
         and "if(existing) return reply" in webmaster_bootstrap_route,
-    "first-run bootstrap hashes the temporary PIN and forces replacement":
-        "iterations:210000" in webmaster_bootstrap_route
-        and "must_change_pin,failed_pin_attempts,locked_until" in webmaster_bootstrap_route
-        and "1,'owner',1,0,0" in webmaster_bootstrap_route,
+    "initial bootstrap activates Webmaster, Ana and Anmer with intended roles":
+        all(name in webmaster_bootstrap_route for name in ("'Webmaster'","'Ana'","'Anmer'","'owner'","'admin'","'staff'"))
+        and "active=1" in webmaster_bootstrap_route
+        and "must_change_pin=1" in webmaster_bootstrap_route,
+    "temporary PINs are generated and hashed only inside the Worker":
+        "generateTemporaryStaffCredential()" in webmaster_bootstrap_route
+        and "crypto.subtle.deriveBits" in worker
+        and "iterations:210000" in worker
+        and "password_hash" not in setup_page,
+    "initial setup batch is atomic and revokes existing seed sessions":
+        "env.DB.batch(statements)" in webmaster_bootstrap_route
+        and "DELETE FROM hapkek_staff_sessions" in webmaster_bootstrap_route,
+    "initial credentials are returned only in a no-store response":
+        "temporaryPin:webmasterPin.pin" in webmaster_bootstrap_route
+        and '"Cache-Control":"no-store, private"' in webmaster_bootstrap_route,
     "setup page reads token from URL fragment and removes it from browser history":
         'location.hash' in setup_page and 'history.replaceState' in setup_page,
-    "setup page posts temporary PIN only to the protected API":
+    "setup page posts to the protected API and displays each one-time credential":
         '"/api/webmaster/bootstrap"' in setup_page
         and 'Authorization":"Bearer "+token' in setup_page
-        and 'JSON.stringify({temporaryPin:pin.value})' in setup_page,
+        and 'JSON.stringify({})' in setup_page
+        and 'id="credentialList"' in setup_page
+        and 'id="copyAll"' in setup_page
+        and 'history.replaceState' in setup_page,
 })
 
 for label, ok in checks.items():
