@@ -1,6 +1,7 @@
 -- HAPKEK v1 nickname + 4-digit PIN authentication.
--- Ana and Anmer are seeded as disabled identities. No shared/default PIN is created.
--- Provision the first administrator with scripts/create_staff_user.mjs before enabling login.
+-- Ana and Anmer are seeded as identities with no usable shared/default PIN.
+-- The protected one-time Webmaster setup activates all three accounts and issues temporary PINs.
+-- Each temporary PIN only permits the account holder to nominate their permanent PIN.
 ALTER TABLE hapkek_staff_users ADD COLUMN must_change_pin INTEGER NOT NULL DEFAULT 1 CHECK (must_change_pin IN (0,1));
 ALTER TABLE hapkek_staff_users ADD COLUMN failed_pin_attempts INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE hapkek_staff_users ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;
