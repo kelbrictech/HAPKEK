@@ -10,29 +10,25 @@
   const musicToggle = document.getElementById('musicToggle');
   let musicStarted = false;
   music.volume = 0.28;
+  function syncMusicControl(isOn) {
+    musicToggle.classList.toggle('is-on', isOn);
+    musicToggle.setAttribute('aria-pressed', String(isOn));
+    musicToggle.setAttribute('aria-label', isOn ? 'Turn background music off' : 'Turn background music on');
+    musicToggle.title = isOn ? 'Turn background music off' : 'Turn background music on';
+  }
   async function playMusic() {
-    try {
-      await music.play(); musicStarted = true;
-      musicToggle.textContent = '♫ Music: On'; musicToggle.setAttribute('aria-pressed', 'true');
-      musicToggle.setAttribute('aria-label', 'Turn background music off');
-    } catch (_) {
-      musicToggle.textContent = '♫ Tap for music';
-    }
+    try { await music.play(); musicStarted = true; syncMusicControl(true); }
+    catch (_) { musicStarted = false; syncMusicControl(false); }
   }
-  function pauseMusic() {
-    music.pause(); musicToggle.textContent = '♫ Music: Off';
-    musicToggle.setAttribute('aria-pressed', 'false'); musicToggle.setAttribute('aria-label', 'Turn background music on');
-  }
-  musicToggle.addEventListener('click', () => {
-    if (!music.paused) pauseMusic(); else playMusic();
-  });
-  // Start only after a real player gesture; browsers block unsolicited autoplay.
+  function pauseMusic() { music.pause(); musicStarted = false; syncMusicControl(false); }
+  musicToggle.addEventListener('click', () => { if (!music.paused) pauseMusic(); else playMusic(); });
+  // Attempt audible autoplay immediately; browser policy may require the first player gesture.
+  syncMusicControl(true);
+  playMusic();
   document.addEventListener('pointerdown', e => {
     if (e.target !== musicToggle && !musicStarted) playMusic();
   }, { once: true, capture: true });
-  document.addEventListener('keydown', () => {
-    if (!musicStarted) playMusic();
-  }, { once: true, capture: true });
+  document.addEventListener('keydown', () => { if (!musicStarted) playMusic(); }, { once: true, capture: true });
 
   const fmt = ms => { let t = ms / 1000, m = Math.floor(t / 60), s = Math.floor(t % 60), d = Math.floor(ms % 1000 / 100); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${d}`; };
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { let j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
