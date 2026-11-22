@@ -71,3 +71,29 @@
 
 /* Keep role-based navigation available on phones at the counter. */
 @media(max-width:720px){.sidebar .nav{display:block;margin:2px 0;padding:9px 10px;font-size:12px}.sidebar .side-label,.sidebar .later-label{display:none}.sidebar-bottom{display:none}}
+
+/* RMS authentication landing: intentionally independent of the operations shell. */
+body.auth-landing{min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#fffaf2 0%,#f5efe6 62%,#eee3d5 100%)}
+body.auth-landing .layout{display:block;min-height:100vh;background:transparent}
+body.auth-landing .sidebar,body.auth-landing .topbar{display:none!important}
+body.auth-landing .main{display:grid;place-items:center;min-height:100vh;width:100%;max-width:none;margin:0;padding:28px 18px}
+body.auth-landing .login-panel{display:block;width:min(100%,430px);margin:0;padding:34px 32px 27px;border:1px solid #eadfd2;border-radius:20px;background:#fffdf9;box-shadow:0 18px 55px rgba(67,39,23,.10)}
+body.auth-landing .auth-brand{display:flex;align-items:center;gap:12px;margin:0 0 34px}
+body.auth-landing .auth-mark{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:#321912;color:#f6dba8;font-size:26px;font-weight:950;box-shadow:inset 0 0 0 1px #b68a45}
+body.auth-landing .auth-brand-copy strong,body.auth-landing .auth-brand-copy small{display:block}
+body.auth-landing .auth-brand-copy strong{font-size:18px;letter-spacing:1.7px;color:#321912}
+body.auth-landing .auth-brand-copy small{margin-top:4px;font-size:9px;letter-spacing:1.25px;font-weight:850;color:#9a7650}
+body.auth-landing .auth-eyebrow{margin:0 0 8px;font-size:9px;letter-spacing:1.6px}
+body.auth-landing .login-panel h1{margin:0;color:#38231a;font-size:30px;line-height:1.12;letter-spacing:-.8px}
+body.auth-landing .auth-intro{margin:10px 0 25px;color:#806f63;font-size:13px;line-height:1.55}
+body.auth-landing .login-panel form label{display:block;margin:16px 0 7px;color:#5d493d;font-size:11px;font-weight:800}
+body.auth-landing .login-panel form input,body.auth-landing .login-panel form select{display:block;width:100%;height:48px;margin:0;padding:0 13px;border:1px solid #ddcdbd;border-radius:9px;background:#fff;color:#36251e;font:inherit;font-size:14px;outline:none}
+body.auth-landing .login-panel form input:focus,body.auth-landing .login-panel form select:focus{border-color:#9c653a;box-shadow:0 0 0 3px rgba(156,101,58,.13)}
+body.auth-landing .login-panel form select{appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237e6656' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+body.auth-landing .login-panel form .auth-submit{display:block;width:100%;min-height:48px;margin:22px 0 0;border-radius:9px;background:#81271e;color:#fff;font-size:13px;font-weight:850;letter-spacing:.2px;box-shadow:0 5px 12px rgba(129,39,30,.13)}
+body.auth-landing .login-panel form .auth-submit:hover{background:#6e1e17}
+body.auth-landing .auth-footnote{margin:18px 0 0;padding-top:15px;border-top:1px solid #f0e6dc;color:#9a897c;font-size:10px;line-height:1.5;text-align:center}
+body.auth-landing .login-panel .error{margin-top:12px;min-height:0;font-size:12px}
+body.auth-landing .login-panel[hidden]{display:none!important}
+@media(max-width:480px){body.auth-landing .main{padding:18px 15px}body.auth-landing .login-panel{padding:29px 23px 23px;border-radius:17px}body.auth-landing .auth-brand{margin-bottom:29px}body.auth-landing .login-panel h1{font-size:27px}}
+@media(min-width:900px){body.auth-landing .main{padding:40px}}
