@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#321912"><title>HAPKEK RMS | Sign in</title><link rel="stylesheet" href="rms.css?v=20261122-mwg1">
+<meta name="theme-color" content="#321912"><title>HAPKEK RMS</title><link rel="stylesheet" href="rms.css?v=20261122-mwg1">
 </head>
-<body class="auth-landing">
+<body>
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="./">HAPKEK <span>RMS</span></a>
@@ -20,44 +20,8 @@
     <div class="sidebar-bottom"><p>HAPKEK Retail Management System</p></div>
   </aside>
   <main class="main">
-    <header class="topbar" id="mainHeader"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Staff</strong><small id="userRole">Checking access</small></div><button id="logout" class="outline">Sign out</button></div></header>
-    <section id="loginPanel" class="panel login-panel auth-card" aria-labelledby="loginTitle">
-      <div class="auth-brand"><span class="auth-mark">H</span><span class="auth-brand-copy"><strong>HAPKEK</strong><small>RETAIL MANAGEMENT SYSTEM</small></span></div>
-      <p class="eyebrow auth-eyebrow">SECURE STAFF ACCESS</p>
-      <h1 id="loginTitle">Sign in to RMS</h1>
-      <p class="auth-intro">Use your assigned staff account to open your workspace.</p>
-      <form id="loginForm">
-        <label for="nickname">Staff account</label>
-        <select id="nickname" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required data-error="accountFieldError">
-          <option value="" disabled selected>Loading active accounts…</option>
-        </select>
-        <span id="accountFieldError" class="field-error">Choose your assigned staff account.</span>
-        <label for="pin">4-digit PIN</label>
-        <div class="pin-input-wrap">
-          <input id="pin" name="password" type="password" inputmode="numeric" enterkeyhint="done" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" placeholder="Enter your PIN" required data-error="pinFieldError">
-          <button id="togglePin" class="pin-toggle" type="button" aria-controls="pin" aria-pressed="false">Show PIN</button>
-          <span id="pinFieldError" class="field-error">Enter your 4-digit PIN.</span>
-        </div>
-        <button class="primary auth-submit" type="submit">Sign in</button>
-        <p id="loginError" class="error" role="alert"></p>
-      </form>
-      <p class="auth-footnote">Access is based on your assigned RMS role.</p>
-    </section>
-    <section id="accessPanel" class="panel" hidden><h2>Access required</h2><p>This account does not have permission to use this RMS workspace. Contact your RMS administrator.</p></section>
-    <section id="pinSetupPanel" class="panel login-panel auth-card" hidden aria-labelledby="pinSetupTitle">
-      <div class="auth-brand"><span class="auth-mark">H</span><span class="auth-brand-copy"><strong>HAPKEK</strong><small>RETAIL MANAGEMENT SYSTEM</small></span></div>
-      <p class="eyebrow auth-eyebrow">FIRST SIGN-IN</p>
-      <h1 id="pinSetupTitle">Create your PIN</h1>
-      <p class="auth-intro">Set a new 4-digit PIN to secure your RMS account.</p>
-      <form id="pinForm">
-        <label for="newPin">New 4-digit PIN</label><input id="newPin" name="new-password" type="password" inputmode="numeric" enterkeyhint="next" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Choose a new PIN" required>
-        <label for="confirmPin">Confirm new PIN</label><input id="confirmPin" name="confirm-new-password" type="password" inputmode="numeric" enterkeyhint="done" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="Re-enter your PIN" required>
-        <button class="primary auth-submit" type="submit">Save PIN and continue</button>
-        <p id="pinError" class="error" role="alert"></p>
-      </form>
-      <p class="auth-footnote">Your PIN is private. Do not share it with other staff.</p>
-    </section>
-    <div id="appContent" hidden>
+    <header class="topbar" id="mainHeader"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">Counter</strong><small id="userRole">Open RMS</small></div></div></header>
+    <div id="appContent">
 
       <section class="pos-screen" id="pos" aria-labelledby="posTitle">
         <div class="pos-heading"><div><p class="eyebrow">HAPKEK / COUNTER</p><h2 id="posTitle">Point of sale</h2><p class="muted">Choose a flavor, add boxes, then collect payment.</p></div><span class="pos-open-pill"><i aria-hidden="true"></i> Ready to sell</span></div>
@@ -90,7 +54,7 @@
             <div id="cartItems" class="cart-items" aria-live="polite"></div>
             <div class="order-totals"><div><span>Boxes</span><strong id="orderBoxes">0</strong></div><div><span>Total pieces</span><strong id="orderPieces">0 pcs</strong></div><div class="grand-total"><span>Total due</span><strong id="orderTotal">₱0</strong></div></div>
             <button type="button" class="checkout-btn" id="openCheckout" disabled>Continue to payment <span aria-hidden="true">→</span></button>
-            <p class="secure-caption">Every sale is saved against the signed-in cashier.</p>
+            <p class="secure-caption">Every sale is recorded under the RMS counter.</p>
           </aside>
         </div>
         <section id="checkoutPanel" class="checkout-panel" hidden><form id="checkoutForm">
@@ -149,24 +113,8 @@
       </section>
       <section class="panel admin-only" id="campaign"><div class="section-head"><div><p class="eyebrow">PROMOTION OPERATIONS</p><h2>Daily prize inventory</h2></div><span class="pill">Asia / Manila</span></div><div class="table-wrap"><table><thead><tr><th>Prize</th><th>Daily allocation</th><th>Issued</th><th>Remaining</th><th>State</th></tr></thead><tbody id="prizeRows"><tr><td colspan="5">Loading campaign inventory…</td></tr></tbody></table></div></section>
       <section class="panel admin-only" id="vouchers"><div class="section-head"><div><p class="eyebrow">ISSUANCE & REDEMPTION</p><h2>Voucher ledger</h2></div><div class="filters"><select id="voucherStatus"><option value="all">All vouchers</option><option value="issued">Unredeemed</option><option value="redeemed">Redeemed</option></select><input id="voucherDate" type="date"><button id="refreshVouchers" class="outline">Refresh</button></div></div><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Prize</th><th>Player ID</th><th>Issued</th><th>Status</th><th>Redeemed by</th></tr></thead><tbody id="voucherRows"><tr><td colspan="6">Loading voucher records…</td></tr></tbody></table></div></section>
-      <section class="panel admin-only" id="users" hidden>
-        <div class="section-head"><div><p class="eyebrow">ANA-ONLY ACCESS CONTROL</p><h2>Issue Anmer's temporary PIN</h2></div></div>
-        <p class="muted">Only Ana can generate this one-time PIN. Share it directly with Anmer yourself. He must choose his own permanent 4-digit PIN the first time he signs in.</p>
-        <form id="userAccessForm" class="filters">
-          <div class="staff-target"><strong>Anmer</strong><small>Staff account · Temporary PIN required</small></div>
-          <button class="primary" id="issueAnmerPin">Generate temporary PIN for Anmer</button>
-        </form>
-        <div id="issuedTemporaryPin" class="issued-pin" hidden>
-          <span>ANMER'S TEMPORARY PIN · SHOW ONCE</span>
-          <strong id="issuedPin" aria-live="polite">••••</strong>
-          <button type="button" id="copyIssuedPin" class="outline">Copy PIN</button>
-          <p>Give this PIN directly to Anmer. Do not post it in a group chat or shared channel.</p>
-        </div>
-        <p id="userAccessMessage" class="muted" role="status"></p>
-        <div class="table-wrap"><table><thead><tr><th>Nickname</th><th>Role</th><th>Access</th><th>PIN setup</th></tr></thead><tbody id="userRows"></tbody></table></div>
-      </section>
             <section class="panel admin-only" id="audit"><div class="section-head"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent audit activity</h2></div><button id="refreshAudit" class="outline">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditRows"><tr><td colspan="5">Loading audit events…</td></tr></tbody></table></div></section>
-      <footer class="admin-only">HAPKEK RMS · Operational data from the shared HAPKEK server</footer>
+      <footer class="admin-only">HAPKEK RMS · Operational data from the shared HAPKEK server · Open access</footer>
     </div>
   </main>
 </div>
