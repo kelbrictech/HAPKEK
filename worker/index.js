@@ -503,12 +503,12 @@ export default {
       const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
       const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:hexToBytes(salt),iterations:210000,hash:"SHA-256"},key,256);
       const hash=bytesToHex(new Uint8Array(bits));
-      const ana=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Ana' COLLATE NOCASE").first();
-      if(!ana) return reply({error:"Admin account not found"},404);
-      await env.DB.prepare("UPDATE hapkek_staff_users SET password_salt=?,password_hash=?,active=1,must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE id=?").bind(salt,hash,ana.id).run();
-      await env.DB.prepare("DELETE FROM hapkek_staff_sessions WHERE staff_id=?").bind(ana.id).run();
-      await rmsAudit(env,{id:ana.id},"webmaster.admin_pin_reset","staff","Ana",{});
-      return reply({ok:true,nickname:"Ana",requiresPinChange:true});
+      const webmaster=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE AND role='owner'").first();
+      if(!webmaster) return reply({error:"Webmaster account has not been provisioned"},404);
+      await env.DB.prepare("UPDATE hapkek_staff_users SET password_salt=?,password_hash=?,active=1,must_change_pin=1,failed_pin_attempts=0,locked_until=0 WHERE id=?").bind(salt,hash,webmaster.id).run();
+      await env.DB.prepare("DELETE FROM hapkek_staff_sessions WHERE staff_id=?").bind(webmaster.id).run();
+      await rmsAudit(env,{id:webmaster.id},"webmaster.pin_reset","staff","Webmaster",{});
+      return reply({ok:true,nickname:"Webmaster",requiresPinChange:true});
     }
     if (url.pathname === "/api/staff/users" && request.method === "GET") {
       const response = await staffDirectory(env); for (const [k,v] of Object.entries(staffCors)) response.headers.set(k,v); return response;
