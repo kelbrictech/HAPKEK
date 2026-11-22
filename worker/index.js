@@ -495,7 +495,7 @@ export default {
     if (staffPath && origin && origin !== staffOrigin) return reply({error:"Origin not allowed"},403);
     if (url.pathname === "/api/webmaster/bootstrap" && request.method === "POST") {
       const secret=env.WEBMASTER_BOOTSTRAP_TOKEN||"";
-      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
+      const supplied=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
       const suppliedHash=await sha256Hex(supplied), expectedHash=await sha256Hex(secret);
       let authDiff=suppliedHash.length^expectedHash.length;
       for(let i=0;i<Math.min(suppliedHash.length,expectedHash.length);i++) authDiff|=suppliedHash.charCodeAt(i)^expectedHash.charCodeAt(i);
@@ -506,7 +506,7 @@ export default {
       }
       let body; try{body=await request.json();}catch{return reply({error:"Invalid request"},400);}
       const pin=String(body?.temporaryPin||"");
-      if(!/^\\d{4}$/.test(pin)) return reply({error:"Enter a 4-digit temporary PIN"},400);
+      if(!/^\d{4}$/.test(pin)) return reply({error:"Enter a 4-digit temporary PIN"},400);
       const existing=await env.DB.prepare("SELECT id FROM hapkek_staff_users WHERE username='Webmaster' COLLATE NOCASE").first();
       if(existing) return reply({error:"Webmaster is already provisioned. Use the normal login or recovery process."},409);
       const salt=bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
