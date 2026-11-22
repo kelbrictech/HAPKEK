@@ -502,7 +502,7 @@ export default {
       : {};
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: {
       ...cors, ...staffCors, "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
     }});
     const url = new URL(request.url);
     const staffPath = url.pathname.startsWith("/api/staff/") || url.pathname.startsWith("/api/rms/") || url.pathname.startsWith("/api/webmaster/");
