@@ -21,6 +21,7 @@ checks={
  "webmaster recovery is secret-gated": "WEBMASTER_RECOVERY_TOKEN" in worker,
  "bootstrap script generates four-digit PIN": "randomInt(10000)" in script and "210000" in script,
  "bootstrap script upserts seeded user": "ON CONFLICT(username) DO UPDATE" in script,
+ "bootstrap script invalidates old sessions": "DELETE FROM hapkek_staff_sessions" in script,
  "dropdown login in staff app": 'id="nickname"' in staff and 'id="username"' not in staff,
  "dropdown login in RMS": 'id="nickname"' in rms and 'id="username"' not in rms,
  "admin staff management UI": 'id="userAccessForm"' in rms and 'id="staffNickname"' in rms,
