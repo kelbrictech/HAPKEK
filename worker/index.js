@@ -340,8 +340,8 @@ async function rmsAudit(env, staff, action, entityType, entityId, details={}) {
 const POS_UNIT_PRICE_PESOS = 150;
 const POS_PIECES_PER_BOX = 15;
 const POS_MAX_BOXES = 99;
-const POS_FLAVORS = new Set(["bavarian","cheese","ube","choco","strawberry"]);
-const POS_FLAVOR_LABELS = {bavarian:"Bavarian",cheese:"Cheese",ube:"Ube",choco:"Choco",strawberry:"Strawberry"};
+const POS_FLAVORS = new Set(["bavarian","cheese","ube","choco","strawberry","mixed"]);
+const POS_FLAVOR_LABELS = {bavarian:"Bavarian",cheese:"Cheese",ube:"Ube",choco:"Choco",strawberry:"Strawberry",mixed:"Mixed"};
 const posManilaDate = () => new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10);
 function posReceiptNumber() {
   const bytes=crypto.getRandomValues(new Uint8Array(4));

@@ -84,7 +84,7 @@
   $("manualCode").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeem(event.target.value);}});
   document.querySelectorAll(".nav").forEach(link=>link.addEventListener("click",()=>{if(link.id!=="scanNav")stopScanner();}));
 
-  const POS_NAMES={bavarian:"Bavarian",cheese:"Cheese",ube:"Ube",choco:"Choco",strawberry:"Strawberry"};
+  const POS_NAMES={bavarian:"Bavarian",cheese:"Cheese",ube:"Ube",choco:"Choco",strawberry:"Strawberry",mixed:"Mixed"};
   const POS_PRICE=150,POS_PIECES=15;
   let posFlavor="bavarian",posQty=1,posCart={},posPayment="cash",posRequestId=null;
   const posMoney=n=>"₱"+Number(n||0).toLocaleString("en-PH");
