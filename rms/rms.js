@@ -106,7 +106,7 @@
       const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Add one "+POS_NAMES[flavor]+" box");plus.dataset.cartFlavor=flavor;plus.dataset.cartDelta="1";
       step.append(minus,qty,plus);right.append(price,step);line.append(main,right);list.append(line);
     });
-    const boxes=posBoxes(),total=posTotal();$("cartBoxCount").textContent=boxes+" "+(boxes===1?"box":"boxes");$("orderBoxes").textContent=boxes;$("orderPieces").textContent=(boxes*POS_PIECES)+" pcs";$("orderTotal").textContent=posMoney(total);$("checkoutTotal").textContent=posMoney(total);$("openCheckout").disabled=!boxes;
+    const boxes=posBoxes(),total=posTotal();$("cartBoxCount").textContent=boxes+" "+(boxes===1?"box":"boxes");$("orderBoxes").textContent=boxes+" "+(boxes===1?"box":"boxes");$("orderPieces").textContent=(boxes*POS_PIECES)+" pcs";$("orderTotal").textContent=posMoney(total);$("checkoutTotal").textContent=posMoney(total);$("openCheckout").disabled=!boxes;
     $("confirmPayment").textContent="Confirm "+posPayment.toUpperCase()+" payment · "+posMoney(total);posUpdateChange();
   }
   function posAdd(flavor,count){
@@ -123,10 +123,12 @@
     if(posPayment!==method)posRequestId=null;
     posPayment=method;document.querySelectorAll("[data-payment]").forEach(b=>{const active=b.dataset.payment===method;b.classList.toggle("selected",active);b.setAttribute("aria-pressed",String(active));});
     $("cashFields").hidden=method!=="cash";$("referenceField").hidden=method==="cash";
-    $("paymentHint").textContent=method==="cash"?"Enter the amount received from the customer.":"Confirm the "+(method==="gcash"?"GCash transfer":"card payment")+" has been received before continuing.";
+    $("paymentHint").textContent=method==="cash"?"Enter the amount received from the customer.":"Confirm the "+(method==="gcash"?"GCash transfer":method==="maya"?"Maya transfer":"card payment")+" has been received before continuing.";
     posCartRender();
   }
   function posReceipt(sale){
+    $("pos").dataset.posStage="3";
+    $("pos").classList.add("has-receipt");
     $("checkoutPanel").hidden=true;$("receiptPanel").hidden=false;const root=$("receiptDetails");root.replaceChildren();
     const title=document.createElement("h4");title.textContent="HAPKEK";root.append(title);
     const subtitle=document.createElement("p");subtitle.textContent="JAPANESE CAKE · SALES RECEIPT";root.append(subtitle);
@@ -150,6 +152,7 @@
     });
   }
   function posReset(){
+    $("pos").classList.remove("has-receipt");
     posFlavor="bavarian";posQty=1;posCart={};posRequestId=null;
     document.querySelectorAll("[data-flavor]").forEach(b=>{const active=b.dataset.flavor===posFlavor;b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",String(active));});
     $("cashReceived").value="";$("customerName").value="";$("orderNotes").value="";$("paymentReference").value="";$("checkoutError").textContent="";$("checkoutPanel").hidden=true;$("receiptPanel").hidden=true;posSetPayment("cash");posProductRender();posCartRender();
@@ -160,13 +163,12 @@
   $("addToOrder").addEventListener("click",()=>{posAdd(posFlavor,posQty);posQty=1;posProductRender();});
   document.querySelectorAll("[data-quick-boxes]").forEach(b=>b.addEventListener("click",()=>posAdd(posFlavor,Number(b.dataset.quickBoxes))));
   $("cartItems").addEventListener("click",event=>{const b=event.target.closest("button[data-cart-flavor]");if(!b)return;const flavor=b.dataset.cartFlavor,delta=Number(b.dataset.cartDelta),next=(posCart[flavor]||0)+delta;if(next<=0)delete posCart[flavor];else if(posBoxes()+delta<=99)posCart[flavor]=next;posRequestId=null;posCartRender();});
-  $("openCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=false;$("receiptPanel").hidden=true;$("cashReceived").value=String(posTotal());$("checkoutTotal").textContent=posMoney(posTotal());posSetPayment(posPayment);$("checkoutPanel").scrollIntoView({behavior:"smooth",block:"start"});});
+  $("openCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=false;$("receiptPanel").hidden=true;$("cashReceived").value=String(posTotal());$("checkoutTotal").textContent=posMoney(posTotal());posSetPayment(posPayment);});
   $("closeCheckout").addEventListener("click",()=>{$("checkoutPanel").hidden=true;});
   document.querySelectorAll("[data-payment]").forEach(b=>b.addEventListener("click",()=>posSetPayment(b.dataset.payment)));
   $("cashReceived").addEventListener("input",posUpdateChange);
   ["customerName","orderNotes","paymentReference"].forEach(id=>$(id).addEventListener("input",()=>{posRequestId=null;}));
-  document.querySelectorAll("[data-cash-exact]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(posTotal());posUpdateChange();}));
-  document.querySelectorAll("[data-cash-add]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(posTotal()+Number(b.dataset.cashAdd));posUpdateChange();}));
+  document.querySelectorAll("[data-cash-tender]").forEach(b=>b.addEventListener("click",()=>{$("cashReceived").value=String(Number(b.dataset.cashTender));posUpdateChange();}));
   $("checkoutForm").addEventListener("submit",async event=>{
     event.preventDefault();$("checkoutError").textContent="";const due=posTotal(),received=posPayment==="cash"?Number($("cashReceived").value):due;
     if(!posBoxes()){ $("checkoutError").textContent="Add at least one box.";return; }
@@ -184,5 +186,77 @@
   posReset();
 
   $("refreshVouchers").onclick=()=>loadVouchers().catch(console.error);$("voucherStatus").onchange=()=>loadVouchers().catch(console.error);$("voucherDate").onchange=()=>loadVouchers().catch(console.error);$("refreshAudit").onclick=()=>loadAudit().catch(console.error);
+
+  // Top-level workspace navigation: one task surface at a time.
+  const viewTitles={pos:"Point of sale",scan:"Voucher scanner",overview:"Overview",vouchers:"Voucher ledger",campaign:"Daily campaign stock",audit:"Audit history"};
+  const viewIds=["pos","scan","overview","vouchers","campaign","audit"];
+  function activateView(id){
+    if(!viewIds.includes(id))id="pos";
+    if(["overview","vouchers","campaign","audit"].includes(id)&&currentStaff?.role!=="admin")id="pos";
+    const target=$(id);if(!target)return;
+    viewIds.forEach(view=>{const el=$(view);if(el)el.classList.toggle("is-active",view===id);});
+    document.querySelectorAll(".nav[data-view]").forEach(link=>{const active=link.dataset.view===id;link.classList.toggle("active",active);if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");});
+    $("mainHeader").querySelector("h1").textContent=viewTitles[id]||"HAPKEK RMS";
+    document.body.classList.remove("menu-open");
+    $("menuToggle").setAttribute("aria-expanded","false");
+    $("menuToggle").setAttribute("aria-label","Open navigation");
+    $("drawerBackdrop").hidden=true;
+    if(id!=="scan")stopScanner();
+    if(id==="scan"&&currentStaff){} 
+    history.replaceState(null,"","#"+id);
+  }
+  function setMenu(open){
+    document.body.classList.toggle("menu-open",open);
+    $("menuToggle").setAttribute("aria-expanded",String(open));
+    $("menuToggle").setAttribute("aria-label",open?"Close navigation":"Open navigation");
+    $("drawerBackdrop").hidden=!open;
+    if(open){const first=$("sidebar").querySelector(".nav:not([hidden])");if(first)first.focus();}
+  }
+  $("menuToggle").addEventListener("click",()=>setMenu(!document.body.classList.contains("menu-open")));
+  $("drawerBackdrop").addEventListener("click",()=>setMenu(false));
+  document.querySelectorAll(".nav[data-view]").forEach(link=>link.addEventListener("click",event=>{event.preventDefault();activateView(link.dataset.view);}));
+  document.addEventListener("keydown",event=>{
+    if(!document.body.classList.contains("menu-open"))return;
+    if(event.key==="Escape"){$("menuToggle").focus();setMenu(false);return;}
+    if(event.key==="Tab"){
+      const focusable=Array.from($("sidebar").querySelectorAll('a[href]:not([hidden]),button:not([hidden])')).filter(el=>el.offsetParent!==null);
+      if(!focusable.length)return;
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    }
+  });
+  viewIds.forEach(id=>{const el=$(id);if(el)el.classList.add("workspace-view");});
+  const initialView=location.hash.slice(1);
+  activateView(viewIds.includes(initialView)?initialView:"pos");
+
+  // Three-state counter flow. Order drawer is an accordion within state one.
+  const posScreen=$("pos");
+  posScreen.dataset.posStage="1";
+  $("pos").querySelector(".pos-product-area").append($("checkoutPanel"));
+  $("overview").append($("posManagement"));
+  function setPosStage(stage){
+    const next=Math.max(1,Math.min(3,stage));
+    posScreen.dataset.posStage=String(next);
+    $("checkoutPanel").hidden=next!==2;
+    $("receiptPanel").hidden=next!==3;
+    posScreen.classList.toggle("has-receipt",next===3);
+    if(next===2){
+      $("cashReceived").value=String(posTotal());
+      $("checkoutError").textContent="";
+      posSetPayment(posPayment);
+      posCartRender();
+    }
+  }
+  $("openCheckout").addEventListener("click",()=>{if(posBoxes())setPosStage(2);});
+  $("closeCheckout").addEventListener("click",()=>setPosStage(1));
+  $("newSale").addEventListener("click",()=>{posReset();setPosStage(1);activateView("pos");});
+  const drawerButton=$("cartDrawerToggle");
+  if(drawerButton)drawerButton.addEventListener("click",()=>{
+    const details=$("cartDrawerDetails"),expanded=drawerButton.getAttribute("aria-expanded")==="true";
+    details.hidden=expanded;drawerButton.setAttribute("aria-expanded",String(!expanded));
+    posScreen.classList.toggle("cart-expanded",!expanded);
+  });
+  setPosStage(1);
   session();
 })();

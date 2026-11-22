@@ -2,26 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#321912"><title>HAPKEK RMS</title><link rel="stylesheet" href="rms.css?v=20261122-mixed1">
+<meta name="theme-color" content="#321912"><title>HAPKEK RMS</title><link rel="stylesheet" href="rms.css?v=20261123-three-state3">
 </head>
 <body>
 <div class="layout">
+  <button type="button" class="drawer-backdrop" id="drawerBackdrop" aria-label="Close navigation" hidden></button>
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="./">HAPKEK <span>RMS</span></a>
     <div class="side-label">OPERATIONS</div>
-    <a class="nav active" href="#pos" id="posNav">Point of sale</a>
-    <a class="nav scan-nav" href="#scan" id="scanNav">Voucher scanner</a>
-    <a class="nav admin-nav" href="#overview">Overview</a>
-    <a class="nav admin-nav" href="#vouchers">Voucher ledger</a>
-    <a class="nav admin-nav" href="#campaign">Daily campaign stock</a>
-    <a class="nav admin-nav" href="#audit">Audit history</a>
-    <a class="nav admin-nav" href="#users">Staff access</a>
+    <a class="nav active" href="#pos" id="posNav" data-view="pos">Point of sale</a>
+    <a class="nav scan-nav" href="#scan" id="scanNav" data-view="scan">Voucher scanner</a>
+    <a class="nav admin-nav" href="#overview" data-view="overview">Overview</a>
+    <a class="nav admin-nav" href="#vouchers" data-view="vouchers">Voucher ledger</a>
+    <a class="nav admin-nav" href="#campaign" data-view="campaign">Daily campaign stock</a>
+    <a class="nav admin-nav" href="#audit" data-view="audit">Audit history</a>
     <div class="side-label later-label admin-nav">MANAGEMENT</div>
     <div class="sidebar-bottom"><p>HAPKEK Retail Management System</p></div>
   </aside>
   <main class="main">
-    <header class="topbar" id="mainHeader"><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div><div class="userbox"><div><strong id="userName">—</strong><small id="userRole">—</small></div><button type="button" class="outline" id="logoutButton">Sign out</button></div></header>
-    <section id="loginPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">HAPKEK / STAFF ACCESS</p><h2>Sign in to RMS</h2><form id="loginForm"><label for="loginNickname">Staff account</label><select id="loginNickname"><option value="Ana">Ana · Admin</option><option value="Anmer">Anmer · Staff</option></select><label for="loginPin">4-digit PIN</label><div class="pin-input"><input id="loginPin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required><button class="pin-reveal" type="button" data-reveal="loginPin" aria-label="Show PIN" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p id="loginError" class="error" role="alert"></p><button type="submit" class="primary">Sign in</button></form></div></section>
+    <header class="topbar" id="mainHeader"><div class="topbar-left"><button type="button" class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button><div><p class="eyebrow">HAPKEK / OPERATIONS</p><h1>Overview</h1><p id="dateLine" class="muted">Loading Philippine business date…</p></div></div><div class="userbox"><div><strong id="userName">—</strong><small id="userRole">—</small></div><button type="button" class="outline" id="logoutButton">Sign out</button></div></header>
+    <section id="loginPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">HAPKEK / STAFF ACCESS</p><h2>Sign in to RMS</h2><form id="loginForm"><label for="loginNickname">Staff account</label><select id="loginNickname"><option value="Ana">Ana · Admin</option><option value="Red">Red · Admin</option><option value="Anmer">Anmer · Staff</option></select><label for="loginPin">4-digit PIN</label><div class="pin-input"><input id="loginPin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required><button class="pin-reveal" type="button" data-reveal="loginPin" aria-label="Show PIN" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p id="loginError" class="error" role="alert"></p><button type="submit" class="primary">Sign in</button></form></div></section>
     <section id="pinSetupPanel" class="auth-panel" hidden><div class="auth-card"><p class="eyebrow">FIRST SIGN-IN REQUIRED</p><h2>Change your temporary PIN</h2><p class="muted">Set a new 4-digit PIN before proceeding to the main POS.</p><form id="pinChangeForm"><label for="newPin">New 4-digit PIN</label><div class="pin-input"><input id="newPin" name="newPin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required><button class="pin-reveal" type="button" data-reveal="newPin" aria-label="Show PIN" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><label for="confirmPin">Confirm new PIN</label><div class="pin-input"><input id="confirmPin" name="confirmPin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required><button class="pin-reveal" type="button" data-reveal="confirmPin" aria-label="Show PIN" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p id="pinChangeError" class="error" role="alert"></p><button type="submit" class="primary">Save new PIN and continue</button></form></div></section>
     <section id="accessPanel" hidden></section>
     <div id="appContent">
@@ -53,12 +53,12 @@
             <div class="pos-note"><span class="note-icon" aria-hidden="true">i</span><p>Each box contains <strong>15 pieces of one flavor</strong>. Add separate boxes to combine flavors in one order. Fixed price: <strong>₱150 per box</strong>.</p></div>
           </div>
           <aside class="pos-order-card" aria-labelledby="orderTitle">
-            <div class="order-heading"><div><span class="eyebrow">CURRENT SALE</span><h3 id="orderTitle">Your order</h3></div><span class="order-count" id="cartBoxCount">0 boxes</span></div>
+            <div class="order-heading"><div><span class="eyebrow">CURRENT ORDER</span><h3 id="orderTitle">Your order</h3></div><div class="order-heading-actions"><span class="order-count" id="cartBoxCount">0 boxes</span></div></div><div id="cartDrawerDetails" class="cart-drawer-details" hidden>
             <div id="emptyCart" class="empty-cart"><span class="empty-cart-icon" aria-hidden="true">＋</span><strong>Your order is empty</strong><small>Select a flavor and add a box to begin</small></div>
             <div id="cartItems" class="cart-items" aria-live="polite"></div>
-            <div class="order-totals"><div><span>Boxes</span><strong id="orderBoxes">0</strong></div><div><span>Total pieces</span><strong id="orderPieces">0 pcs</strong></div><div class="grand-total"><span>Total due</span><strong id="orderTotal">₱0</strong></div></div>
-            <button type="button" class="checkout-btn" id="openCheckout" disabled>Continue to payment <span aria-hidden="true">→</span></button>
-            <p class="secure-caption">Every sale is recorded under the RMS counter.</p>
+            <p class="secure-caption">Every sale is recorded under the RMS counter.</p></div>
+            <div class="mobile-cart-footer"><button type="button" id="cartDrawerToggle" class="cart-drawer-toggle" aria-expanded="false" aria-controls="cartDrawerDetails"><span class="drawer-caret" aria-hidden="true">⌃</span><span class="order-totals"><span class="drawer-count"><span id="orderBoxes">0 boxes</span><small id="orderPieces">0 pcs</small></span><span class="grand-total"><span>Total due</span><strong id="orderTotal">₱0</strong></span></span></button>
+            <button type="button" class="checkout-btn" id="openCheckout" disabled>Collect payment <span aria-hidden="true">→</span></button></div>
           </aside>
         </div>
         <section id="checkoutPanel" class="checkout-panel" hidden><form id="checkoutForm">
@@ -66,11 +66,12 @@
           <div class="checkout-due"><span>Amount due</span><strong id="checkoutTotal">₱0</strong></div>
           <fieldset class="payment-methods"><legend class="field-label">Payment method</legend><div class="payment-options">
             <button type="button" class="payment-option selected" data-payment="cash" aria-pressed="true"><span aria-hidden="true">₱</span>Cash</button>
-            <button type="button" class="payment-option" data-payment="gcash" aria-pressed="false"><span aria-hidden="true">G</span>GCash</button>
-            <button type="button" class="payment-option" data-payment="card" aria-pressed="false"><span aria-hidden="true">▤</span>Card</button>
+            <button type="button" class="payment-option" data-payment="gcash" aria-pressed="false"><span aria-hidden="true">G</span><span>GCash<small>E-Wallet QR</small></span></button>
+            <button type="button" class="payment-option" data-payment="maya" aria-pressed="false"><span aria-hidden="true">M</span><span>Maya<small>E-Wallet / QRPh</small></span></button>
+            <button type="button" class="payment-option" data-payment="card" aria-pressed="false"><span aria-hidden="true">▤</span><span>Card<small>Debit / Credit</small></span></button>
           </div></fieldset>
           <div id="cashFields" class="cash-fields"><label for="cashReceived">Cash received</label><div class="cash-input-wrap"><span>₱</span><input id="cashReceived" name="cashReceived" type="number" inputmode="numeric" min="0" step="1" placeholder="Enter amount received" autocomplete="off"></div>
-            <div class="cash-shortcuts"><button type="button" data-cash-exact="1">Exact</button><button type="button" data-cash-add="50">+₱50</button><button type="button" data-cash-add="100">+₱100</button><button type="button" data-cash-add="500">+₱500</button></div>
+            <div class="cash-shortcuts"><button type="button" data-cash-tender="150">₱150</button><button type="button" data-cash-tender="200">₱200</button><button type="button" data-cash-tender="500">₱500</button><button type="button" data-cash-tender="1000">₱1,000</button></div>
             <div class="change-row"><span>Change</span><strong id="changeDue">₱0</strong></div>
           </div>
           <div id="referenceField" hidden><label for="paymentReference">Payment reference <span class="muted">(optional)</span></label><input id="paymentReference" maxlength="100" autocomplete="off" placeholder="GCash reference or card slip number"></div>
@@ -122,5 +123,5 @@
     </div>
   </main>
 </div>
-<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"https://api.kelbric.com";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261122-mixed1"></script>
+<script>window.HAPKEK_RMS_API=window.HAPKEK_RMS_API||"https://api.kelbric.com";</script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="rms.js?v=20261123-three-state3"></script>
 </body></html>
