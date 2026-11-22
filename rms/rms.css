@@ -283,3 +283,10 @@ body.auth-landing .main{display:grid;place-items:center;min-height:100vh;min-hei
 .auth-card button{margin-top:12px;min-height:48px}
 .auth-card .error{min-height:18px;margin:10px 0}
 body.auth-landing #mainHeader{display:none!important}
+
+/* PIN reveal controls */
+.pin-input{display:flex;align-items:stretch;gap:8px}
+.pin-input input{flex:1;min-width:0}
+.pin-reveal{flex:0 0 64px;margin:0!important;padding:0 10px;min-height:48px;border:1px solid #d8cabc;border-radius:9px;background:#f8f1e9;color:#6b3025;font:700 13px inherit;cursor:pointer}
+.pin-reveal:focus-visible{outline:3px solid #8d382b;outline-offset:2px}
+.pin-input input[aria-invalid="true"]{border-color:#b42318;outline-color:#b42318}
